@@ -1,4 +1,6 @@
-abstract class MonoBehaviour {
+/// <reference path="Component.ts"/>
+
+abstract class MonoBehaviour extends Component {
 
     public get scene(): Scene {
         return this.gameObject.scene;
@@ -7,7 +9,8 @@ abstract class MonoBehaviour {
         return this.scene.engine;
     }
 
-    constructor(public gameObject: GameObject) {
+    constructor(gameObject: GameObject) {
+        super(gameObject);
         gameObject.monoBehaviours.push(this);
     }
 

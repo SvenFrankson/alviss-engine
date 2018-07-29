@@ -70,6 +70,14 @@ class List<T> {
         return this.array[i];
     }
 
+    public head(): T {
+        return this.array[0];
+    }
+
+    public tail(): T {
+        return this.array[this.array.length - 1];
+    }
+
     public get length(): number {
         return this.array.length;
     }

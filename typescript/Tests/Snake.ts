@@ -6,20 +6,19 @@ class Snake extends MonoBehaviour {
     public speed: number = 2;
 
     public start(): void {
-        this.gameObject.addSprite(
-            SpriteTools.CreateSprite(
-                `
-                    00111100
-                    01222210
-                    12333321
-                    12344321
-                    12344321
-                    12333321
-                    01222210
-                    00111100
-                `,
-                256, 256, 0, 256
-            )
+        this.gameObject.AddComponent(SpriteRenderer);
+        this.gameObject.spriteRenderer.sprite = SpriteTools.CreateSprite(
+            `
+                00111100
+                01222210
+                12333321
+                12844821
+                12344321
+                12333321
+                01222210
+                00111100
+            `,
+            256, 256, 0, 256
         );
         this.gameObject.transform.position.x = 8 * 4;
         this.gameObject.transform.position.y = 8 * 4;
@@ -52,20 +51,19 @@ class Snake extends MonoBehaviour {
             this.gameObject.transform.position.y += this.direction.y * 8;
             if (Math.random() > 0.9) {
                 let newPart = new GameObject(this.scene);
-                newPart.addSprite(
-                    SpriteTools.CreateSprite(
-                        `
-                            00111100
-                            01222210
-                            12333321
-                            12344321
-                            12344321
-                            12333321
-                            01222210
-                            00111100
-                        `,
-                        256, 256 , 0, 256
-                    )
+                newPart.AddComponent(SpriteRenderer);
+                newPart.spriteRenderer.sprite = SpriteTools.CreateSprite(
+                    `
+                        00111100
+                        01222210
+                        12333321
+                        12344321
+                        12344321
+                        12333321
+                        01222210
+                        00111100
+                    `,
+                    256, 256 , 0, 256
                 );
                 newPart.transform.position.x = lastX;
                 newPart.transform.position.y = lastY;

@@ -1,12 +1,7 @@
 class GameObject {
 
-    private _currentSpriteIndex: number = -1;
-    private _sprites: ImageData[] = [];
-    public get currentSprite(): ImageData {
-        return this._sprites[this._currentSpriteIndex];
-    }
-
     public transform: Transform;
+    public spriteRenderer: SpriteRenderer;
     public monoBehaviours: List<MonoBehaviour> = new List<MonoBehaviour>();
     private _components: List<Component> = new List<Component>();
 
@@ -19,11 +14,6 @@ class GameObject {
         this.scene.objects.remove(this);
     }
 
-    public addSprite(sprite: ImageData): void {
-        this._sprites.push(sprite);
-        this._currentSpriteIndex = this._sprites.length - 1;
-    }
-
     public AddComponent<T extends Component>(TConstructor: new (gameObject: GameObject) => T): T {
         let component = this.GetComponent(TConstructor);
         if (!component) {
@@ -34,6 +24,9 @@ class GameObject {
             }
             if (component instanceof Transform) {
                 this.transform = component;
+            }
+            if (component instanceof SpriteRenderer) {
+                this.spriteRenderer = component;
             }
         }
         return component;

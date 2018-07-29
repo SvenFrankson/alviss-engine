@@ -14,7 +14,7 @@ class SpriteTools {
         return new ImageData(buffer, size, size);
     }
 
-    public static CreateSprite(ascii: string, red: number = 1, green: number = 1, blue: number = 1, alpha: number = 1): ImageData {
+    public static CreateSprite(ascii: string, red: number = 1, green: number = 1, blue: number = 1, alpha: number = 1): Sprite {
         ascii = ascii.trim();
         while (ascii.indexOf(" ") !== -1) {
             ascii = ascii.replace(" ", "");
@@ -43,6 +43,6 @@ class SpriteTools {
                 buffer[index * 4 + 3] = v === 0 ? 0 : alpha;
             }
         }
-        return new ImageData(buffer, width, height);
+        return new Sprite(new ImageData(buffer, width, height));
     }
 }

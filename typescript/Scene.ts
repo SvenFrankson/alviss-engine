@@ -26,7 +26,9 @@ class Scene {
         this.objects.sort((g1, g2) => { return g1.transform.depth - g2.transform.depth; });
         this.objects.forEach(
             (g) => {
-                this.engine.context.putImageData(g.currentSprite, g.transform.dx, this.engine.height - g.transform.dy);
+                if (g.spriteRenderer) {
+                    this.engine.context.putImageData(g.spriteRenderer.sprite.data, g.transform.position.x, this.engine.height - g.transform.position.y);
+                }
             }
         );
     }

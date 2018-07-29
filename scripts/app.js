@@ -40,22 +40,13 @@ class Engine {
 class GameObject {
     constructor(scene) {
         this.scene = scene;
-        this._currentSpriteIndex = -1;
-        this._sprites = [];
         this.monoBehaviours = new List();
         this._components = new List();
         this.scene.objects.push(this);
         this.AddComponent(Transform);
     }
-    get currentSprite() {
-        return this._sprites[this._currentSpriteIndex];
-    }
     destroy() {
         this.scene.objects.remove(this);
-    }
-    addSprite(sprite) {
-        this._sprites.push(sprite);
-        this._currentSpriteIndex = this._sprites.length - 1;
     }
     AddComponent(TConstructor) {
         let component = this.GetComponent(TConstructor);
@@ -67,6 +58,9 @@ class GameObject {
             }
             if (component instanceof Transform) {
                 this.transform = component;
+            }
+            if (component instanceof SpriteRenderer) {
+                this.spriteRenderer = component;
             }
         }
         return component;
@@ -141,9 +135,9 @@ class KeyBoard {
         }
     }
 }
-class MonoBehaviour {
+class MonoBehaviour extends Component {
     constructor(gameObject) {
-        this.gameObject = gameObject;
+        super(gameObject);
         this._started = false;
         gameObject.monoBehaviours.push(this);
     }
@@ -233,8 +227,20 @@ class Scene {
     render() {
         this.objects.sort((g1, g2) => { return g1.transform.depth - g2.transform.depth; });
         this.objects.forEach((g) => {
-            this.engine.context.putImageData(g.currentSprite, g.transform.dx, this.engine.height - g.transform.dy);
+            if (g.spriteRenderer) {
+                this.engine.context.putImageData(g.spriteRenderer.sprite.data, g.transform.position.x, this.engine.height - g.transform.position.y);
+            }
         });
+    }
+}
+class Sprite {
+    constructor(data) {
+        this.data = data;
+    }
+}
+class SpriteRenderer extends Component {
+    constructor(gameObject) {
+        super(gameObject);
     }
 }
 class Transform extends Component {
@@ -269,16 +275,17 @@ class Snake extends MonoBehaviour {
         this.speed = 2;
     }
     start() {
-        this.gameObject.addSprite(SpriteTools.CreateSprite(`
-                    00111100
-                    01222210
-                    12333321
-                    12344321
-                    12344321
-                    12333321
-                    01222210
-                    00111100
-                `, 256, 256, 0, 256));
+        this.gameObject.AddComponent(SpriteRenderer);
+        this.gameObject.spriteRenderer.sprite = SpriteTools.CreateSprite(`
+                00111100
+                01222210
+                12333321
+                12844821
+                12344321
+                12333321
+                01222210
+                00111100
+            `, 256, 256, 0, 256);
         this.gameObject.transform.position.x = 8 * 4;
         this.gameObject.transform.position.y = 8 * 4;
     }
@@ -309,16 +316,17 @@ class Snake extends MonoBehaviour {
             this.gameObject.transform.position.y += this.direction.y * 8;
             if (Math.random() > 0.9) {
                 let newPart = new GameObject(this.scene);
-                newPart.addSprite(SpriteTools.CreateSprite(`
-                            00111100
-                            01222210
-                            12333321
-                            12344321
-                            12344321
-                            12333321
-                            01222210
-                            00111100
-                        `, 256, 256, 0, 256));
+                newPart.AddComponent(SpriteRenderer);
+                newPart.spriteRenderer.sprite = SpriteTools.CreateSprite(`
+                        00111100
+                        01222210
+                        12333321
+                        12344321
+                        12344321
+                        12333321
+                        01222210
+                        00111100
+                    `, 256, 256, 0, 256);
                 newPart.transform.position.x = lastX;
                 newPart.transform.position.y = lastY;
                 this.parts.push_first(newPart);
@@ -427,6 +435,12 @@ class List {
     get(i) {
         return this.array[i];
     }
+    head() {
+        return this.array[0];
+    }
+    tail() {
+        return this.array[this.array.length - 1];
+    }
     get length() {
         return this.array.length;
     }
@@ -474,6 +488,6 @@ class SpriteTools {
                 buffer[index * 4 + 3] = v === 0 ? 0 : alpha;
             }
         }
-        return new ImageData(buffer, width, height);
+        return new Sprite(new ImageData(buffer, width, height));
     }
 }
