@@ -1,0 +1,15 @@
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+canvas {
+  margin: 32px;
+  width: 480px;
+  height: 480px;
+  display: block;
+  touch-action: none;
+  border: 1px solid black;
+  image-rendering: pixelated;
+}
