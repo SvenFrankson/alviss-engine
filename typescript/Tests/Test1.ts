@@ -3,16 +3,16 @@ class TestMBH1 extends MonoBehaviour {
     public update(): void {
         super.update();
         if (this.engine.input.getPadButtonDown(PadButton.Up)) {
-            this.gameObject.position.y += 1;
+            this.gameObject.transform.position.y += 1;
         }
         if (this.engine.input.getPadButtonDown(PadButton.Down)) {
-            this.gameObject.position.y -= 1;
+            this.gameObject.transform.position.y -= 1;
         }
         if (this.engine.input.getPadButtonDown(PadButton.Right)) {
-            this.gameObject.position.x += 1;
+            this.gameObject.transform.position.x += 1;
         }
         if (this.engine.input.getPadButtonDown(PadButton.Left)) {
-            this.gameObject.position.x -= 1;
+            this.gameObject.transform.position.x -= 1;
         }
     }
 }
@@ -27,8 +27,8 @@ window.onload = () => {
         let engine = new Engine(context, canvas.width, canvas.height);
         let scene = new Scene(engine);
         let g = new GameObject(scene);
-        g.position.x = 25;
-        g.position.y = 30;
+        g.transform.position.x = 25;
+        g.transform.position.y = 30;
         new TestMBH1(g);
     }
 }

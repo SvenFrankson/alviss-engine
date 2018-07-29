@@ -23,10 +23,10 @@ class Scene {
     }
 
     public render(): void {
-        this.objects.sort((g1, g2) => { return g1.depth - g2.depth; });
+        this.objects.sort((g1, g2) => { return g1.transform.depth - g2.transform.depth; });
         this.objects.forEach(
             (g) => {
-                this.engine.context.putImageData(g.currentSprite, g.dx, this.engine.height - g.dy);
+                this.engine.context.putImageData(g.currentSprite, g.transform.dx, this.engine.height - g.transform.dy);
             }
         );
     }

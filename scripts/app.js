@@ -1,3 +1,20 @@
+class Component {
+    get scene() {
+        return this.gameObject.scene;
+    }
+    get transform() {
+        return this.gameObject.transform;
+    }
+    constructor(gameObject) {
+        this.gameObject = gameObject;
+    }
+    GetComponent(TConstructor) {
+        return this.gameObject.GetComponent(TConstructor);
+    }
+    GetComponents(TConstructor) {
+        return this.gameObject.GetComponents(TConstructor);
+    }
+}
 class Engine {
     constructor(context, width, height) {
         this.context = context;
@@ -23,18 +40,12 @@ class Engine {
 class GameObject {
     constructor(scene) {
         this.scene = scene;
-        this.depth = 0;
         this._currentSpriteIndex = -1;
         this._sprites = [];
         this.monoBehaviours = new List();
-        this.position = Vector2.Zero();
+        this._components = new List();
         this.scene.objects.push(this);
-    }
-    get dx() {
-        return Math.round(this.position.x - this.currentSprite.width / 2);
-    }
-    get dy() {
-        return Math.round(this.position.y - this.currentSprite.height / 2);
+        this.AddComponent(Transform);
     }
     get currentSprite() {
         return this._sprites[this._currentSpriteIndex];
@@ -45,6 +56,33 @@ class GameObject {
     addSprite(sprite) {
         this._sprites.push(sprite);
         this._currentSpriteIndex = this._sprites.length - 1;
+    }
+    AddComponent(TConstructor) {
+        let component = this.GetComponent(TConstructor);
+        if (!component) {
+            component = new TConstructor(this);
+            this._components.push(component);
+            if (component instanceof MonoBehaviour) {
+                this.monoBehaviours.push(component);
+            }
+            if (component instanceof Transform) {
+                this.transform = component;
+            }
+        }
+        return component;
+    }
+    GetComponent(TConstructor) {
+        return this._components.first((c) => { return c instanceof TConstructor; });
+    }
+    GetComponents(TConstructor) {
+        let components = [];
+        for (let i = 0; i < this._components.length; i++) {
+            let component = this._components.get(i);
+            if (component instanceof TConstructor) {
+                components.push(component);
+            }
+        }
+        return components;
     }
 }
 class Input {
@@ -193,10 +231,24 @@ class Scene {
         });
     }
     render() {
-        this.objects.sort((g1, g2) => { return g1.depth - g2.depth; });
+        this.objects.sort((g1, g2) => { return g1.transform.depth - g2.transform.depth; });
         this.objects.forEach((g) => {
-            this.engine.context.putImageData(g.currentSprite, g.dx, this.engine.height - g.dy);
+            this.engine.context.putImageData(g.currentSprite, g.transform.dx, this.engine.height - g.transform.dy);
         });
+    }
+}
+class Transform extends Component {
+    constructor(gameObject) {
+        super(gameObject);
+        this.depth = 0;
+        this.name = "Transform";
+        this.position = Vector2.Zero();
+    }
+    get dx() {
+        return Math.round(this.position.x);
+    }
+    get dy() {
+        return Math.round(this.position.y);
     }
 }
 class Vector2 {
@@ -227,8 +279,8 @@ class Snake extends MonoBehaviour {
                     01222210
                     00111100
                 `, 256, 256, 0, 256));
-        this.gameObject.position.x = 8 * 4;
-        this.gameObject.position.y = 8 * 4;
+        this.gameObject.transform.position.x = 8 * 4;
+        this.gameObject.transform.position.y = 8 * 4;
     }
     update() {
         super.update();
@@ -251,10 +303,10 @@ class Snake extends MonoBehaviour {
         this.t++;
         if (this.t > 60 / this.speed) {
             this.t = 0;
-            let lastX = this.gameObject.position.x;
-            let lastY = this.gameObject.position.y;
-            this.gameObject.position.x += this.direction.x * 8;
-            this.gameObject.position.y += this.direction.y * 8;
+            let lastX = this.gameObject.transform.position.x;
+            let lastY = this.gameObject.transform.position.y;
+            this.gameObject.transform.position.x += this.direction.x * 8;
+            this.gameObject.transform.position.y += this.direction.y * 8;
             if (Math.random() > 0.9) {
                 let newPart = new GameObject(this.scene);
                 newPart.addSprite(SpriteTools.CreateSprite(`
@@ -267,22 +319,22 @@ class Snake extends MonoBehaviour {
                             01222210
                             00111100
                         `, 256, 256, 0, 256));
-                newPart.position.x = lastX;
-                newPart.position.y = lastY;
+                newPart.transform.position.x = lastX;
+                newPart.transform.position.y = lastY;
                 this.parts.push_first(newPart);
-                this.speed *= 1;
+                this.speed *= 1.05;
             }
             else {
                 for (let i = this.parts.length - 1; i > 0; i--) {
                     let part = this.parts.get(i);
                     let previousPart = this.parts.get(i - 1);
-                    part.position.x = previousPart.position.x;
-                    part.position.y = previousPart.position.y;
+                    part.transform.position.x = previousPart.transform.position.x;
+                    part.transform.position.y = previousPart.transform.position.y;
                 }
                 let part0 = this.parts.get(0);
                 if (part0) {
-                    part0.position.x = lastX;
-                    part0.position.y = lastY;
+                    part0.transform.position.x = lastX;
+                    part0.transform.position.y = lastY;
                 }
             }
         }
@@ -297,8 +349,8 @@ window.onload = () => {
         let engine = new Engine(context, canvas.width, canvas.height);
         let scene = new Scene(engine);
         let g = new GameObject(scene);
-        g.position.x = 25;
-        g.position.y = 30;
+        g.transform.position.x = 25;
+        g.transform.position.y = 30;
         new Snake(g);
     }
 };
@@ -306,16 +358,16 @@ class TestMBH1 extends MonoBehaviour {
     update() {
         super.update();
         if (this.engine.input.getPadButtonDown(PadButton.Up)) {
-            this.gameObject.position.y += 1;
+            this.gameObject.transform.position.y += 1;
         }
         if (this.engine.input.getPadButtonDown(PadButton.Down)) {
-            this.gameObject.position.y -= 1;
+            this.gameObject.transform.position.y -= 1;
         }
         if (this.engine.input.getPadButtonDown(PadButton.Right)) {
-            this.gameObject.position.x += 1;
+            this.gameObject.transform.position.x += 1;
         }
         if (this.engine.input.getPadButtonDown(PadButton.Left)) {
-            this.gameObject.position.x -= 1;
+            this.gameObject.transform.position.x -= 1;
         }
     }
 }
