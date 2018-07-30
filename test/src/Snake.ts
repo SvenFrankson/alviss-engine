@@ -1,13 +1,13 @@
-class Snake extends MonoBehaviour {
+class Snake extends Alviss.MonoBehaviour {
 
-    public direction: Vector2 = new Vector2(1, 0);
-    private parts: List<GameObject> = new List<GameObject>();
+    public direction: Alviss.Vector2 = new Alviss.Vector2(1, 0);
+    private parts: Alviss.List<Alviss.GameObject> = new Alviss.List<Alviss.GameObject>();
     private t: number = 0;
     public speed: number = 2;
 
     public start(): void {
-        this.gameObject.AddComponent(SpriteRenderer);
-        this.gameObject.spriteRenderer.sprite = SpriteTools.CreateSprite(
+        this.gameObject.AddComponent(Alviss.SpriteRenderer);
+        this.gameObject.spriteRenderer.sprite = Alviss.SpriteTools.CreateSprite(
             `
                 00111100
                 01222210
@@ -26,19 +26,19 @@ class Snake extends MonoBehaviour {
 
     public update(): void {
         super.update();
-        if (this.engine.input.getPadButton(PadButton.Up)) {
+        if (this.engine.input.getPadButton(Alviss.PadButton.Up)) {
             this.direction.x = 0;
             this.direction.y = 1;
         }
-        if (this.engine.input.getPadButton(PadButton.Down)) {
+        if (this.engine.input.getPadButton(Alviss.PadButton.Down)) {
             this.direction.x = 0;
             this.direction.y = - 1;
         }
-        if (this.engine.input.getPadButton(PadButton.Right)) {
+        if (this.engine.input.getPadButton(Alviss.PadButton.Right)) {
             this.direction.x = 1;
             this.direction.y = 0;
         }
-        if (this.engine.input.getPadButton(PadButton.Left)) {
+        if (this.engine.input.getPadButton(Alviss.PadButton.Left)) {
             this.direction.x = - 1;
             this.direction.y = 0;
         }
@@ -50,9 +50,9 @@ class Snake extends MonoBehaviour {
             this.gameObject.transform.position.x += this.direction.x * 8;
             this.gameObject.transform.position.y += this.direction.y * 8;
             if (Math.random() > 0.9) {
-                let newPart = new GameObject(this.scene);
-                newPart.AddComponent(SpriteRenderer);
-                newPart.spriteRenderer.sprite = SpriteTools.CreateSprite(
+                let newPart = new Alviss.GameObject(this.scene);
+                newPart.AddComponent(Alviss.SpriteRenderer);
+                newPart.spriteRenderer.sprite = Alviss.SpriteTools.CreateSprite(
                     `
                         00111100
                         01222210
@@ -63,7 +63,7 @@ class Snake extends MonoBehaviour {
                         01222210
                         00111100
                     `,
-                    256, 256 , 0, 256
+                    256, 256, 0, 256
                 );
                 newPart.transform.position.x = lastX;
                 newPart.transform.position.y = lastY;
@@ -84,20 +84,5 @@ class Snake extends MonoBehaviour {
                 }
             }
         }
-    }
-}
-
-window.onload = () => {
-    let canvas = document.getElementById("render-canvas-snake");
-    if (canvas instanceof HTMLCanvasElement) {
-        canvas.width = 128;
-        canvas.height = 128;
-        let context = canvas.getContext("2d");
-        let engine = new Engine(context, canvas.width, canvas.height);
-        let scene = new Scene(engine);
-        let g = new GameObject(scene);
-        g.transform.position.x = 25;
-        g.transform.position.y = 30;
-        new Snake(g);
     }
 }
