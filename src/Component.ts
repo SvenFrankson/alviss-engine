@@ -7,6 +7,9 @@ module Alviss {
         public get scene(): Scene {
             return this.gameObject.scene;
         }
+        public get engine(): Engine {
+            return this.gameObject.engine;
+        }
         public get transform(): Transform {
             return this.gameObject.transform;
         }

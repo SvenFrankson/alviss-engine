@@ -1,3 +1,5 @@
+/// <reference path="../Component.ts"/>
+
 module Alviss {
 
     export abstract class MonoBehaviour extends Component {
@@ -19,13 +21,24 @@ module Alviss {
         }
 
         private _started: boolean = false;
-        public start(): void { };
+        public Start(): void { };
 
-        public update(): void {
+        public _update(): void {
             if (!this._started) {
-                this.start();
+                this.Start();
                 this._started = true;
             }
-        };
+            else {
+                this.Update();
+            }
+        }
+
+        public Update(): void {};
+
+        public OnCollisionEnter(collision: Collision): void {};
+
+        public OnCollisionStay(collision: Collision): void {};
+
+        public OnCollisionExit(collision: Collision): void {};
     }
 }

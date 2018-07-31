@@ -3,9 +3,7 @@
         "target": "es6",
         "module": "amd",
         "outFile": "../dist/alviss.js",
-        "declaration": true,
-        "moduleResolution": "node",
-        "isolatedModules": false,
+        "declaration": true
     },
     "exclude": []
 }

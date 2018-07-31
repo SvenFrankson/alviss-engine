@@ -1,4 +1,4 @@
-module Alviss {
+namespace Alviss {
 
     export class List<T> {
 
@@ -6,6 +6,16 @@ module Alviss {
 
         constructor() {
             this.array = [];
+        }
+
+        public copyFrom(other: List<T>): List<T> {
+            this.array = other.array.slice();
+            return this;
+        }
+
+        public clear(): List<T> {
+            this.array = [];
+            return this;
         }
 
         public push(e: T) {

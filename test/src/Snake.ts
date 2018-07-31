@@ -5,7 +5,7 @@ class Snake extends Alviss.MonoBehaviour {
     private t: number = 0;
     public speed: number = 2;
 
-    public start(): void {
+    public Start(): void {
         this.gameObject.AddComponent(Alviss.SpriteRenderer);
         this.gameObject.spriteRenderer.sprite = Alviss.SpriteTools.CreateSprite(
             `
@@ -24,8 +24,7 @@ class Snake extends Alviss.MonoBehaviour {
         this.gameObject.transform.position.y = 8 * 4;
     }
 
-    public update(): void {
-        super.update();
+    public Update(): void {
         if (this.engine.input.getPadButton(Alviss.PadButton.Up)) {
             this.direction.x = 0;
             this.direction.y = 1;

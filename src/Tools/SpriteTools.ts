@@ -1,8 +1,8 @@
-module Alviss {
+namespace Alviss {
 
     export class SpriteTools {
 
-        public static CreateSquareSprite(size: number, red: number = 1, green: number = 1, blue: number = 1, alpha: number = 1): ImageData {
+        public static CreateSquareSprite(size: number, red: number = 1, green: number = 1, blue: number = 1, alpha: number = 1): Sprite {
             let buffer = new Uint8ClampedArray(size * size * 4);
             for (let j = 0; j < size; j++) {
                 for (let i = 0; i < size; i++) {
@@ -13,7 +13,30 @@ module Alviss {
                     buffer[index * 4 + 3] = alpha;
                 }
             }
-            return new ImageData(buffer, size, size);
+            return new Sprite(new ImageData(buffer, size, size));
+        }
+
+        public static CreateDiscSprite(radius: number, red: number = 1, green: number = 1, blue: number = 1, alpha: number = 1): Sprite {
+            let buffer = new Uint8ClampedArray(2 * radius * 2 * radius * 4);
+            let radiusSquared = (radius) * (radius);
+            for (let j = 0; j < 2 * radius; j++) {
+                for (let i = 0; i < 2 * radius; i++) {
+                    let index = i + j * 2 * radius;
+                    if ((i - radius) * (i - radius) + (j - radius) * (j - radius) < radiusSquared) {
+                        buffer[index * 4] = red;
+                        buffer[index * 4 + 1] = green;
+                        buffer[index * 4 + 2] = blue;
+                        buffer[index * 4 + 3] = alpha;
+                    }
+                    else {
+                        buffer[index * 4] = 0;
+                        buffer[index * 4 + 1] = 0;
+                        buffer[index * 4 + 2] = 0;
+                        buffer[index * 4 + 3] = 0;
+                    }
+                }
+            }
+            return new Sprite(new ImageData(buffer, 2 * radius, 2 * radius));
         }
 
         public static CreateSprite(ascii: string, red: number = 1, green: number = 1, blue: number = 1, alpha: number = 1): Sprite {

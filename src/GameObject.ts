@@ -7,9 +7,13 @@ module Alviss {
         public monoBehaviours: List<MonoBehaviour> = new List<MonoBehaviour>();
         private _components: List<Component> = new List<Component>();
 
+        public get engine(): Engine {
+            return this.scene.engine;
+        }
+
         constructor(public scene: Scene) {
-            this.scene.objects.push(this);
             this.AddComponent(Transform);
+            this.scene.objects.push(this);
         }
 
         public destroy(): void {
@@ -47,6 +51,30 @@ module Alviss {
                 }
             }
             return components;
+        }
+
+        public _onCollisionEnter(collision: Collision): void {
+            this.monoBehaviours.forEach(
+                (m) => {
+                    m.OnCollisionEnter(collision);
+                }
+            );
+        }
+
+        public _onCollisionStay(collision: Collision): void {
+            this.monoBehaviours.forEach(
+                (m) => {
+                    m.OnCollisionStay(collision);
+                }
+            );
+        }
+
+        public _onCollisionExit(collision: Collision): void {
+            this.monoBehaviours.forEach(
+                (m) => {
+                    m.OnCollisionExit(collision);
+                }
+            );
         }
     }
 }

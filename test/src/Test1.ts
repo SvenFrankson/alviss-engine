@@ -1,7 +1,6 @@
 class TestMBH1 extends Alviss.MonoBehaviour {
 
-    public update(): void {
-        super.update();
+    public Update(): void {
         if (this.engine.input.getPadButtonDown(Alviss.PadButton.Up)) {
             this.gameObject.transform.position.y += 1;
         }

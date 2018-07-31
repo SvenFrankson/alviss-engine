@@ -15,10 +15,16 @@ module Alviss {
                 () => {
                     this.scenes.forEach(
                         (scene) => {
+                            scene.updatePhysic();
+                        }
+                    );
+                    this.scenes.forEach(
+                        (scene) => {
                             scene.update();
                         }
                     );
-                    this.context.clearRect(0, 0, this.width, this.height);
+                    this.context.fillStyle = "black";
+                    this.context.fillRect(0, 0, this.width, this.height);
                     this.scenes.forEach(
                         (scene) => {
                             scene.render();
