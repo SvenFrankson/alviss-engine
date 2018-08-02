@@ -33,6 +33,7 @@ declare module Matter {
 
     class Body {
         static setPosition(body: Body, position: IVector): void;
+        static setAngle(body: Body, angle: number): void;
         static setMass(body: Body, mass: number): void;
         position: IVector;
         angle: number;

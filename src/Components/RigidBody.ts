@@ -36,11 +36,13 @@ module Alviss {
                 let worldPosition = this.transform.getWorldPosition();
                 if (this.collider instanceof DiscCollider) {
                     this.gameObject._body = Matter.Bodies.circle(worldPosition.x, worldPosition.y, this.collider.radius);
+                    Matter.Body.setAngle(this.gameObject._body, - this.transform.worldAngle);
                     Matter.Body.setMass(this.gameObject._body, this.mass);
                     Matter.World.add(this.scene.physicWorld, [this.gameObject._body]);
                 }
                 else if (this.collider instanceof RectangleCollider) {
                     this.gameObject._body = Matter.Bodies.rectangle(worldPosition.x, worldPosition.y, this.collider.width, this.collider.height);
+                    Matter.Body.setAngle(this.gameObject._body, - this.transform.worldAngle);
                     Matter.Body.setMass(this.gameObject._body, this.mass);
                     Matter.World.add(this.scene.physicWorld, [this.gameObject._body]);
                 }

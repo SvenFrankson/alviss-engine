@@ -72,20 +72,20 @@ module Alviss {
             )
 
             if (a instanceof Transform) {
-                this.transform.parent = a;
+                clone.transform.parent = a;
                 if (typeof(b) === "boolean") {
                     if (b as boolean) {
-                        this.transform.setWorldPosition(0, 0);
+                        clone.transform.setWorldPosition(0, 0);
                     } 
                 }
             }
             else if (a instanceof Vector2) {
                 if (parent instanceof Transform) {
-                    this.transform.parent = parent;
+                    clone.transform.parent = parent;
                 }
-                this.transform.setLocalPosition(a);
+                clone.transform.setLocalPosition(a);
                 if (typeof(b) === "number") {
-                    this.transform.localAngle = b as number;
+                    clone.transform.localAngle = b as number;
                 }
             }
 

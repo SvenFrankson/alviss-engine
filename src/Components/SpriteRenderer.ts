@@ -38,9 +38,9 @@ module Alviss {
             }
             
             this.engine.context.translate(this._screenPosition.x, this.engine.height - this._screenPosition.y);
-            this.engine.context.rotate(this.transform.worldAngle);
-            this.engine.context.drawImage(this.sprite.image, - this.sprite.image.width * 0.5, - this.sprite.image.height * 0.5);
             this.engine.context.rotate(- this.transform.worldAngle);
+            this.engine.context.drawImage(this.sprite.image, - this.sprite.image.width * 0.5, - this.sprite.image.height * 0.5);
+            this.engine.context.rotate(this.transform.worldAngle);
             this.engine.context.translate(- this._screenPosition.x, - this.engine.height + this._screenPosition.y);
         }
     }

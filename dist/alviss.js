@@ -178,20 +178,20 @@ var Alviss;
                 }
             });
             if (a instanceof Alviss.Transform) {
-                this.transform.parent = a;
+                clone.transform.parent = a;
                 if (typeof (b) === "boolean") {
                     if (b) {
-                        this.transform.setWorldPosition(0, 0);
+                        clone.transform.setWorldPosition(0, 0);
                     }
                 }
             }
             else if (a instanceof Alviss.Vector2) {
                 if (parent instanceof Alviss.Transform) {
-                    this.transform.parent = parent;
+                    clone.transform.parent = parent;
                 }
-                this.transform.setLocalPosition(a);
+                clone.transform.setLocalPosition(a);
                 if (typeof (b) === "number") {
-                    this.transform.localAngle = b;
+                    clone.transform.localAngle = b;
                 }
             }
             return clone;
@@ -361,7 +361,7 @@ var Alviss;
             this.rigidBodies = new Alviss.List();
             this.engine.scenes.push(this);
             this.physicEngine = Matter.Engine.create();
-            this.physicWorld.gravity.y *= -0.1;
+            this.physicWorld.gravity.y = -1;
         }
         get physicWorld() {
             return this.physicEngine.world;
@@ -681,11 +681,13 @@ var Alviss;
             let worldPosition = this.transform.getWorldPosition();
             if (this instanceof Alviss.DiscCollider) {
                 this.gameObject._body = Matter.Bodies.circle(worldPosition.x, worldPosition.y, this.radius, { isStatic: true });
+                Matter.Body.setAngle(this.gameObject._body, this.transform.worldAngle);
                 Matter.World.add(this.scene.physicWorld, [this.gameObject._body]);
             }
             else if (this instanceof Alviss.RectangleCollider) {
                 console.log("!");
                 this.gameObject._body = Matter.Bodies.rectangle(worldPosition.x, worldPosition.y, this.width, this.height, { isStatic: true });
+                Matter.Body.setAngle(this.gameObject._body, this.transform.worldAngle);
                 Matter.World.add(this.scene.physicWorld, [this.gameObject._body]);
             }
         }
@@ -860,11 +862,13 @@ var Alviss;
                 let worldPosition = this.transform.getWorldPosition();
                 if (this.collider instanceof Alviss.DiscCollider) {
                     this.gameObject._body = Matter.Bodies.circle(worldPosition.x, worldPosition.y, this.collider.radius);
+                    Matter.Body.setAngle(this.gameObject._body, -this.transform.worldAngle);
                     Matter.Body.setMass(this.gameObject._body, this.mass);
                     Matter.World.add(this.scene.physicWorld, [this.gameObject._body]);
                 }
                 else if (this.collider instanceof Alviss.RectangleCollider) {
                     this.gameObject._body = Matter.Bodies.rectangle(worldPosition.x, worldPosition.y, this.collider.width, this.collider.height);
+                    Matter.Body.setAngle(this.gameObject._body, -this.transform.worldAngle);
                     Matter.Body.setMass(this.gameObject._body, this.mass);
                     Matter.World.add(this.scene.physicWorld, [this.gameObject._body]);
                 }
@@ -914,9 +918,9 @@ var Alviss;
                 this._screenPosition.addInPlace(this.engine.width * 0.5, this.engine.height * 0.5);
             }
             this.engine.context.translate(this._screenPosition.x, this.engine.height - this._screenPosition.y);
-            this.engine.context.rotate(this.transform.worldAngle);
-            this.engine.context.drawImage(this.sprite.image, -this.sprite.image.width * 0.5, -this.sprite.image.height * 0.5);
             this.engine.context.rotate(-this.transform.worldAngle);
+            this.engine.context.drawImage(this.sprite.image, -this.sprite.image.width * 0.5, -this.sprite.image.height * 0.5);
+            this.engine.context.rotate(this.transform.worldAngle);
             this.engine.context.translate(-this._screenPosition.x, -this.engine.height + this._screenPosition.y);
         }
     }
