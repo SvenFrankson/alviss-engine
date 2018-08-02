@@ -22,6 +22,10 @@ module Alviss {
             this.name = "SquareCollider";
             this.width = 8;
             this.height = 8;
+            if (this.gameObject.spriteRenderer) {
+                this.width = this.gameObject.spriteRenderer.sprite.image.width;
+                this.height = this.gameObject.spriteRenderer.sprite.image.height;
+            }
         }
 
         public serialize(): any {

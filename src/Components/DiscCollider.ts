@@ -8,6 +8,9 @@ module Alviss {
             super(gameObject);
             this.name = "DiscCollider";
             this.radius = 8;
+            if (this.gameObject.spriteRenderer) {
+                this.radius = this.gameObject.spriteRenderer.sprite.image.width * 0.5;
+            }
         }
 
         public serialize(): any {

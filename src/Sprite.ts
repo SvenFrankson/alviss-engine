@@ -4,15 +4,24 @@ module Alviss {
 
         public image: HTMLImageElement;
 
-        constructor(public data: ImageData) {
-            var canvas = document.createElement('canvas');
-            var ctx = canvas.getContext('2d');
-            canvas.width = data.width;
-            canvas.height = data.height;
-            ctx.putImageData(data, 0, 0);
-
+        constructor(src: string);
+        constructor(data: ImageData);
+        constructor(arg: string | ImageData) {
+            let src = "";
             this.image = document.createElement("img");
-            this.image.src = canvas.toDataURL();
+            if (arg instanceof ImageData) {
+                var canvas = document.createElement('canvas');
+                var ctx = canvas.getContext('2d');
+                canvas.width = arg.width;
+                canvas.height = arg.height;
+                ctx.putImageData(arg, 0, 0);
+    
+                src = canvas.toDataURL();
+            }
+            else if (typeof(arg) === "string") {
+                src = arg;
+            }
+            this.image.src = src;
         }
     }
 }

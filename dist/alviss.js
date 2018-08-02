@@ -406,15 +406,21 @@ var Alviss;
 var Alviss;
 (function (Alviss) {
     class Sprite {
-        constructor(data) {
-            this.data = data;
-            var canvas = document.createElement('canvas');
-            var ctx = canvas.getContext('2d');
-            canvas.width = data.width;
-            canvas.height = data.height;
-            ctx.putImageData(data, 0, 0);
+        constructor(arg) {
+            let src = "";
             this.image = document.createElement("img");
-            this.image.src = canvas.toDataURL();
+            if (arg instanceof ImageData) {
+                var canvas = document.createElement('canvas');
+                var ctx = canvas.getContext('2d');
+                canvas.width = arg.width;
+                canvas.height = arg.height;
+                ctx.putImageData(arg, 0, 0);
+                src = canvas.toDataURL();
+            }
+            else if (typeof (arg) === "string") {
+                src = arg;
+            }
+            this.image.src = src;
         }
     }
     Alviss.Sprite = Sprite;
@@ -679,6 +685,9 @@ var Alviss;
             this._tmpProject = Alviss.Vector2.Zero();
             this.name = "DiscCollider";
             this.radius = 8;
+            if (this.gameObject.spriteRenderer) {
+                this.radius = this.gameObject.spriteRenderer.sprite.image.width * 0.5;
+            }
         }
         serialize() {
             return {
@@ -851,6 +860,10 @@ var Alviss;
             this.name = "SquareCollider";
             this.width = 8;
             this.height = 8;
+            if (this.gameObject.spriteRenderer) {
+                this.width = this.gameObject.spriteRenderer.sprite.image.width;
+                this.height = this.gameObject.spriteRenderer.sprite.image.height;
+            }
         }
         get x0() {
             return this.transform.getWorldPosition().x - this.width * 0.5;

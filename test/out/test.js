@@ -136,9 +136,8 @@ class Main {
                 let ball = new Alviss.GameObject(scene);
                 ball.transform.setWorldPosition((Math.random() - 0.5) * engine.width, (Math.random() - 0) * engine.height);
                 ball.AddComponent(Alviss.SpriteRenderer);
-                ball.spriteRenderer.sprite = Alviss.SpriteTools.CreateDiscSprite(16, 256, 0, 0, 256);
+                ball.spriteRenderer.sprite = new Alviss.Sprite("./face.png");
                 ball.AddComponent(Alviss.DiscCollider);
-                ball.GetComponent(Alviss.DiscCollider).radius = 16;
                 ball.AddComponent(Alviss.RigidBody);
             }
             for (let i = 0; i < 5; i++) {
@@ -147,8 +146,6 @@ class Main {
                 cube.AddComponent(Alviss.SpriteRenderer);
                 cube.spriteRenderer.sprite = Alviss.SpriteTools.CreateRectangleSprite(32, 32, 256, 0, 0, 256);
                 cube.AddComponent(Alviss.RectangleCollider);
-                cube.GetComponent(Alviss.RectangleCollider).width = 32;
-                cube.GetComponent(Alviss.RectangleCollider).height = 32;
                 cube.AddComponent(Alviss.RigidBody);
             }
             let ground = new Alviss.GameObject(scene);

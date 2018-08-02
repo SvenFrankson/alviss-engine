@@ -147,8 +147,8 @@ declare module Alviss {
 }
 declare module Alviss {
     class Sprite {
-        data: ImageData;
         image: HTMLImageElement;
+        constructor(src: string);
         constructor(data: ImageData);
     }
 }
