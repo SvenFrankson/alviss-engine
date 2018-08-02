@@ -14,7 +14,7 @@ module Alviss {
         constructor(public engine: Engine) {
             this.engine.scenes.push(this);
             this.physicEngine = Matter.Engine.create();
-            this.physicWorld.gravity.y = -1;
+            this.physicWorld.gravity.y *= -0.1;
         }
 
         public destroy(): void {

@@ -172,7 +172,10 @@ var Alviss;
                 clone = new GameObject(this.scene);
             }
             this._components.forEach((c) => {
-                clone.AddComponent(c.constructor);
+                let comp = clone.AddComponent(c.constructor);
+                if (comp instanceof Alviss.Component) {
+                    comp.deserialize(c.serialize());
+                }
             });
             if (a instanceof Alviss.Transform) {
                 this.transform.parent = a;
@@ -358,7 +361,7 @@ var Alviss;
             this.rigidBodies = new Alviss.List();
             this.engine.scenes.push(this);
             this.physicEngine = Matter.Engine.create();
-            this.physicWorld.gravity.y = -1;
+            this.physicWorld.gravity.y *= -0.1;
         }
         get physicWorld() {
             return this.physicEngine.world;
@@ -407,9 +410,13 @@ var Alviss;
 (function (Alviss) {
     class Sprite {
         constructor(arg) {
-            let src = "";
             this.image = document.createElement("img");
+            if (arg === undefined) {
+                return;
+            }
+            let src = "";
             if (arg instanceof ImageData) {
+                this._data = arg;
                 var canvas = document.createElement('canvas');
                 var ctx = canvas.getContext('2d');
                 canvas.width = arg.width;
@@ -418,9 +425,41 @@ var Alviss;
                 src = canvas.toDataURL();
             }
             else if (typeof (arg) === "string") {
+                this._src = arg;
                 src = arg;
             }
             this.image.src = src;
+        }
+        serialize() {
+            if (this._src) {
+                return {
+                    src: this._src
+                };
+            }
+            if (this._data) {
+                return {
+                    w: this._data.width,
+                    h: this._data.height,
+                    data: this._data.data
+                };
+            }
+        }
+        deserialize(data) {
+            if (data) {
+                if (data.src) {
+                    this._src = data.src;
+                    this.image.src = this._src;
+                }
+                else if (isFinite(data.w) && isFinite(data.h) && data.data) {
+                    this._data = new ImageData(data.data, data.w, data.h);
+                    var canvas = document.createElement('canvas');
+                    var ctx = canvas.getContext('2d');
+                    canvas.width = this._data.width;
+                    canvas.height = this._data.height;
+                    ctx.putImageData(this._data, 0, 0);
+                    this.image.src = canvas.toDataURL();
+                }
+            }
         }
     }
     Alviss.Sprite = Sprite;
@@ -645,6 +684,7 @@ var Alviss;
                 Matter.World.add(this.scene.physicWorld, [this.gameObject._body]);
             }
             else if (this instanceof Alviss.RectangleCollider) {
+                console.log("!");
                 this.gameObject._body = Matter.Bodies.rectangle(worldPosition.x, worldPosition.y, this.width, this.height, { isStatic: true });
                 Matter.World.add(this.scene.physicWorld, [this.gameObject._body]);
             }
@@ -686,7 +726,13 @@ var Alviss;
             this.name = "DiscCollider";
             this.radius = 8;
             if (this.gameObject.spriteRenderer) {
-                this.radius = this.gameObject.spriteRenderer.sprite.image.width * 0.5;
+                if (this.gameObject.spriteRenderer.sprite) {
+                    if (this.gameObject.spriteRenderer.sprite.image) {
+                        if (this.gameObject.spriteRenderer.sprite.image.width > 0) {
+                            this.radius = this.gameObject.spriteRenderer.sprite.image.width * 0.5;
+                        }
+                    }
+                }
             }
         }
         serialize() {
@@ -786,10 +832,20 @@ var Alviss;
     class RigidBody extends Alviss.Component {
         constructor(gameObject) {
             super(gameObject);
+            this._mass = 1;
             gameObject.rigidBody = this;
             this.collider = this.GetComponent(Alviss.Collider);
             if (this.isInstance) {
                 this.scene.rigidBodies.push(this);
+            }
+        }
+        get mass() {
+            return this._mass;
+        }
+        set mass(v) {
+            this._mass = v;
+            if (this.gameObject._body) {
+                Matter.Body.setMass(this.gameObject._body, v);
             }
         }
         destroy() {
@@ -804,10 +860,12 @@ var Alviss;
                 let worldPosition = this.transform.getWorldPosition();
                 if (this.collider instanceof Alviss.DiscCollider) {
                     this.gameObject._body = Matter.Bodies.circle(worldPosition.x, worldPosition.y, this.collider.radius);
+                    Matter.Body.setMass(this.gameObject._body, this.mass);
                     Matter.World.add(this.scene.physicWorld, [this.gameObject._body]);
                 }
                 else if (this.collider instanceof Alviss.RectangleCollider) {
                     this.gameObject._body = Matter.Bodies.rectangle(worldPosition.x, worldPosition.y, this.collider.width, this.collider.height);
+                    Matter.Body.setMass(this.gameObject._body, this.mass);
                     Matter.World.add(this.scene.physicWorld, [this.gameObject._body]);
                 }
             }
@@ -817,7 +875,7 @@ var Alviss;
                 this._createBody();
             }
             if (this.gameObject._body) {
-                this.transform.setWorldPosition(Alviss.Vector2.Tmp(this.gameObject._body.position.x, this.gameObject._body.position.y));
+                this.transform.setWorldPosition(this.gameObject._body.position.x, this.gameObject._body.position.y);
                 this.transform.worldAngle = this.gameObject._body.angle;
             }
         }
@@ -835,6 +893,19 @@ var Alviss;
         destroy() {
             super.destroy();
             this.gameObject.spriteRenderer = undefined;
+        }
+        serialize() {
+            return {
+                s: this.sprite ? this.sprite.serialize() : undefined
+            };
+        }
+        deserialize(data) {
+            if (data) {
+                if (data.s) {
+                    this.sprite = new Alviss.Sprite();
+                    this.sprite.deserialize(data.s);
+                }
+            }
         }
         _render(camera) {
             this._screenPosition.copyFrom(this.transform.getWorldPosition());
@@ -861,8 +932,14 @@ var Alviss;
             this.width = 8;
             this.height = 8;
             if (this.gameObject.spriteRenderer) {
-                this.width = this.gameObject.spriteRenderer.sprite.image.width;
-                this.height = this.gameObject.spriteRenderer.sprite.image.height;
+                if (this.gameObject.spriteRenderer.sprite) {
+                    if (this.gameObject.spriteRenderer.sprite.image) {
+                        if (this.gameObject.spriteRenderer.sprite.image.width > 0) {
+                            this.width = this.gameObject.spriteRenderer.sprite.image.width;
+                            this.height = this.gameObject.spriteRenderer.sprite.image.height;
+                        }
+                    }
+                }
             }
         }
         get x0() {
@@ -967,6 +1044,10 @@ var Alviss;
                 this._localPosition.rotateInPlace(-this.parent.worldAngle);
             }
             this.flagWorldPosDirty();
+            if (this.gameObject._body) {
+                this.gameObject._body.position.x = this.getWorldPosition().x;
+                this.gameObject._body.position.y = this.getWorldPosition().y;
+            }
         }
         getLocalPosition() {
             return this._localPosition;
@@ -981,13 +1062,17 @@ var Alviss;
             }
             this._localPosition.copyFrom(v);
             this.flagWorldPosDirty();
+            if (this.gameObject._body) {
+                this.gameObject._body.position.x = this.getWorldPosition().x;
+                this.gameObject._body.position.y = this.getWorldPosition().y;
+            }
         }
         get localAngle() {
             return this._localAngle;
         }
         set localAngle(a) {
             this._localAngle = a;
-            this._worldPositionIsDirty = true;
+            this.flagWorldPosDirty();
         }
         get worldAngle() {
             if (this.parent) {

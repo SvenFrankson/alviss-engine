@@ -14,6 +14,21 @@ module Alviss {
             this.gameObject.spriteRenderer = undefined;
         }
 
+        public serialize(): any {
+            return {
+                s: this.sprite ? this.sprite.serialize() : undefined
+            };
+        }
+
+        public deserialize(data: any) {
+            if (data) {
+                if (data.s) {
+                    this.sprite = new Sprite();
+                    this.sprite.deserialize(data.s);
+                }
+            }
+        }
+
         private _screenPosition: Vector2 = Vector2.Zero();
         public _render(camera?: Camera): void {
             this._screenPosition.copyFrom(this.transform.getWorldPosition());

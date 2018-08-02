@@ -9,7 +9,13 @@ module Alviss {
             this.name = "DiscCollider";
             this.radius = 8;
             if (this.gameObject.spriteRenderer) {
-                this.radius = this.gameObject.spriteRenderer.sprite.image.width * 0.5;
+                if (this.gameObject.spriteRenderer.sprite) {
+                    if (this.gameObject.spriteRenderer.sprite.image) {
+                        if (this.gameObject.spriteRenderer.sprite.image.width > 0) {
+                            this.radius = this.gameObject.spriteRenderer.sprite.image.width * 0.5;
+                        }
+                    }
+                }
             }
         }
 

@@ -3,6 +3,16 @@ module Alviss {
     export class RigidBody extends Component {
 
         public collider: Collider;
+        private _mass: number = 1;
+        public get mass(): number {
+            return this._mass;
+        }
+        public set mass(v: number) {
+            this._mass = v;
+            if (this.gameObject._body) {
+               Matter.Body.setMass(this.gameObject._body, v);
+            }
+        }
 
         constructor(gameObject: GameObject) {
             super(gameObject);
@@ -26,10 +36,12 @@ module Alviss {
                 let worldPosition = this.transform.getWorldPosition();
                 if (this.collider instanceof DiscCollider) {
                     this.gameObject._body = Matter.Bodies.circle(worldPosition.x, worldPosition.y, this.collider.radius);
+                    Matter.Body.setMass(this.gameObject._body, this.mass);
                     Matter.World.add(this.scene.physicWorld, [this.gameObject._body]);
                 }
                 else if (this.collider instanceof RectangleCollider) {
                     this.gameObject._body = Matter.Bodies.rectangle(worldPosition.x, worldPosition.y, this.collider.width, this.collider.height);
+                    Matter.Body.setMass(this.gameObject._body, this.mass);
                     Matter.World.add(this.scene.physicWorld, [this.gameObject._body]);
                 }
             }
@@ -40,7 +52,7 @@ module Alviss {
                 this._createBody();
             }
             if (this.gameObject._body) {
-                this.transform.setWorldPosition(Vector2.Tmp(this.gameObject._body.position.x, this.gameObject._body.position.y));
+                this.transform.setWorldPosition(this.gameObject._body.position.x, this.gameObject._body.position.y);
                 this.transform.worldAngle = this.gameObject._body.angle;
             }
         }

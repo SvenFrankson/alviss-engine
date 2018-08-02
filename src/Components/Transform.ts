@@ -31,6 +31,10 @@ module Alviss {
                 this._localPosition.rotateInPlace(- this.parent.worldAngle);
             }
             this.flagWorldPosDirty();
+            if (this.gameObject._body) {
+                this.gameObject._body.position.x = this.getWorldPosition().x;
+                this.gameObject._body.position.y = this.getWorldPosition().y;
+            }
         }
 
         private _localPosition: Vector2 = Vector2.Zero();
@@ -49,6 +53,10 @@ module Alviss {
             }
             this._localPosition.copyFrom(v);
             this.flagWorldPosDirty();
+            if (this.gameObject._body) {
+                this.gameObject._body.position.x = this.getWorldPosition().x;
+                this.gameObject._body.position.y = this.getWorldPosition().y;
+            }
         }
 
         private _localAngle: number = 0;
@@ -57,7 +65,7 @@ module Alviss {
         }
         public set localAngle(a: number) {
             this._localAngle = a;
-            this._worldPositionIsDirty = true;
+            this.flagWorldPosDirty();
         }
         public get worldAngle(): number {
             if (this.parent) {

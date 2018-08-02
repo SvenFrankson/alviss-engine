@@ -64,7 +64,10 @@ module Alviss {
 
             this._components.forEach(
                 (c) => {
-                    clone.AddComponent(c.constructor as (new (gameObject: GameObject) => any));
+                    let comp = clone.AddComponent(c.constructor as (new (gameObject: GameObject) => any));
+                    if (comp instanceof Component) {
+                        comp.deserialize(c.serialize());
+                    }
                 }
             )
 

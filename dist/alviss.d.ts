@@ -147,9 +147,14 @@ declare module Alviss {
 }
 declare module Alviss {
     class Sprite {
+        private _src;
+        private _data;
         image: HTMLImageElement;
+        constructor();
         constructor(src: string);
         constructor(data: ImageData);
+        serialize(): any;
+        deserialize(data: any): void;
     }
 }
 declare namespace Alviss {
@@ -244,6 +249,8 @@ declare module Alviss {
 declare module Alviss {
     class RigidBody extends Component {
         collider: Collider;
+        private _mass;
+        mass: number;
         constructor(gameObject: GameObject);
         destroy(): void;
         private _createBody();
@@ -255,6 +262,8 @@ declare module Alviss {
         sprite: Sprite;
         constructor(gameObject: GameObject);
         destroy(): void;
+        serialize(): any;
+        deserialize(data: any): void;
         private _screenPosition;
         _render(camera?: Camera): void;
     }

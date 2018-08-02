@@ -64,6 +64,7 @@ class Main {
         Main.RunCollisionAutoTest();
         Main.RunPhysicTest();
         Main.RunTransformTest();
+        Main.RunInstantiateTest();
     }
     static RunSnake() {
         let canvas = document.getElementById("render-canvas-snake");
@@ -192,6 +193,42 @@ class Main {
             clone.transform.setWorldPosition(-64, 32);
         }
     }
+    static RunInstantiateTest() {
+        let canvas = document.getElementById("render-canvas-instantiate");
+        if (canvas instanceof HTMLCanvasElement) {
+            canvas.width = 256;
+            canvas.height = 256;
+            let context = canvas.getContext("2d");
+            let engine = new Alviss.Engine(context, canvas.width, canvas.height);
+            let scene = new Alviss.Scene(engine);
+            let camera = new Alviss.GameObject(scene);
+            camera.AddComponent(Alviss.Camera);
+            let prefab = new Alviss.GameObject(engine);
+            prefab.AddComponent(Alviss.SpriteRenderer);
+            prefab.spriteRenderer.sprite = Alviss.SpriteTools.CreateDiscSprite(16, 0, 256, 0, 256);
+            prefab.AddComponent(Alviss.DiscCollider);
+            prefab.GetComponent(Alviss.DiscCollider).radius = 16;
+            prefab.AddComponent(Alviss.RigidBody);
+            prefab.AddComponent(SpawnedMBH);
+            let spawner = new Alviss.GameObject(scene);
+            spawner.AddComponent(Alviss.SpriteRenderer);
+            spawner.spriteRenderer.sprite = Alviss.SpriteTools.CreateRectangleSprite(16, 16, 256, 0, 0, 256);
+            spawner.AddComponent(MoveAroundMBH);
+            spawner.AddComponent(SpawnMBH);
+            spawner.GetComponent(SpawnMBH).template = prefab;
+            for (let i = 0; i < 10; i++) {
+                let cube = new Alviss.GameObject(scene);
+                cube.transform.setWorldPosition((Math.random() - 0.5) * engine.width, Math.random() * engine.height * 0.5 - engine.height * 0.5);
+                cube.AddComponent(Alviss.SpriteRenderer);
+                let h = Math.floor(Math.random() * 24 + 8);
+                let w = Math.floor(Math.random() * 24 + 8);
+                cube.spriteRenderer.sprite = Alviss.SpriteTools.CreateRectangleSprite(w, h, 0, 0, 256, 256);
+                cube.AddComponent(Alviss.RectangleCollider);
+                cube.GetComponent(Alviss.RectangleCollider).width = w;
+                cube.GetComponent(Alviss.RectangleCollider).height = h;
+            }
+        }
+    }
 }
 class MoveAroundMBH extends Alviss.MonoBehaviour {
     constructor() {
@@ -200,7 +237,30 @@ class MoveAroundMBH extends Alviss.MonoBehaviour {
     }
     Update() {
         this._k++;
-        this.transform.setWorldPosition(Math.sin(this._k / 600 * Math.PI * 2) * 64, Math.sin(this._k / 300 * Math.PI * 2) * 64);
+        this.transform.setLocalPosition(Math.sin(this._k / 600 * Math.PI * 2) * this.engine.width * 0.5, Math.sin(this._k / 300 * Math.PI * 2) * this.engine.height * 0.25 + this.engine.height * 0.25);
+    }
+}
+class SpawnMBH extends Alviss.MonoBehaviour {
+    constructor() {
+        super(...arguments);
+        this._k = 0;
+    }
+    Update() {
+        this._k++;
+        if (this._k > 43) {
+            this._k++;
+            let obj = Alviss.GameObject.Instantiate(this.template, this.transform.getLocalPosition(), 0);
+            obj.rigidBody.mass = Math.random() * 5;
+            this._k = 0;
+        }
+    }
+}
+class SpawnedMBH extends Alviss.MonoBehaviour {
+    constructor() {
+        super(...arguments);
+        this._k = 0;
+    }
+    Update() {
     }
 }
 class MovingUpNDown extends Alviss.MonoBehaviour {

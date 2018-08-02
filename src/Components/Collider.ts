@@ -28,6 +28,7 @@ module Alviss {
                 Matter.World.add(this.scene.physicWorld, [this.gameObject._body]);
             }
             else if (this instanceof RectangleCollider) {
+                console.log("!");
                 this.gameObject._body = Matter.Bodies.rectangle(worldPosition.x, worldPosition.y, this.width, this.height, {isStatic: true});
                 Matter.World.add(this.scene.physicWorld, [this.gameObject._body]);
             }
