@@ -2,16 +2,16 @@ class CollisionTestMBH extends Alviss.MonoBehaviour {
 
     public Update(): void {
         if (this.engine.input.getPadButtonDown(Alviss.PadButton.Up)) {
-            this.gameObject.transform.position.y += 1;
+            this.gameObject.transform.Translate(0, 1);
         }
         if (this.engine.input.getPadButtonDown(Alviss.PadButton.Down)) {
-            this.gameObject.transform.position.y -= 1;
+            this.gameObject.transform.Translate(0, -1);
         }
         if (this.engine.input.getPadButtonDown(Alviss.PadButton.Right)) {
-            this.gameObject.transform.position.x += 1;
+            this.gameObject.transform.Translate(1, 0);
         }
         if (this.engine.input.getPadButtonDown(Alviss.PadButton.Left)) {
-            this.gameObject.transform.position.x -= 1;
+            this.gameObject.transform.Translate(0, 1);
         }
     }
 
@@ -40,23 +40,23 @@ class CollisionAutoTestMBH extends Alviss.MonoBehaviour {
     }
 
     public Update(): void {
-        this.transform.position.addInPlace(this.direction.scale(0.75));
-        if (this.transform.position.x - this.radius <= 0 && this.direction.x < 0) {
-            this.direction.x *= -1;
+        this.transform.Translate(this.direction.scale(0.75));
+        if (this.transform.getWorldPosition().x - this.radius <= 0 && this.direction.x < 0) {
+            this.direction.multiplyInPlace(- 1, 1);
         }
-        if (this.transform.position.x + this.radius > this.engine.width && this.direction.x > 0) {
-            this.direction.x *= -1;
+        if (this.transform.getWorldPosition().x + this.radius > this.engine.width && this.direction.x > 0) {
+            this.direction.multiplyInPlace(- 1, 1);
         }
-        if (this.transform.position.y - this.radius <= 0 && this.direction.y < 0) {
-            this.direction.y *= -1;
+        if (this.transform.getWorldPosition().y - this.radius <= 0 && this.direction.y < 0) {
+            this.direction.multiplyInPlace(1, - 1);
         }
-        if (this.transform.position.y + this.radius > this.engine.height && this.direction.y > 0) {
-            this.direction.y *= -1;
+        if (this.transform.getWorldPosition().y + this.radius > this.engine.height && this.direction.y > 0) {
+            this.direction.multiplyInPlace(1, - 1);
         }
     }
 
     public OnCollisionEnter(collision: Alviss.Collision): void {
-        let n = this.transform.position.clone().subtractInPlace(collision.contact);
+        let n = this.transform.getWorldPosition().clone().subtractInPlace(collision.contact);
         this.direction.mirrorInPlace(n);
     }
 

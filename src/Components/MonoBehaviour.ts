@@ -14,10 +14,16 @@ module Alviss {
         constructor(gameObject: GameObject) {
             super(gameObject);
             gameObject.monoBehaviours.push(this);
+            if (this.isInstance) {
+                gameObject.monoBehaviours.push(this);
+            }
         }
 
         public destroy(): void {
-            this.gameObject.monoBehaviours.remove(this);
+            super.destroy();
+            if (this.isInstance) {
+                this.gameObject.monoBehaviours.remove(this);
+            }
         }
 
         private _started: boolean = false;

@@ -10,11 +10,55 @@ var Alviss;
     }
     Alviss.Collision = Collision;
 })(Alviss || (Alviss = {}));
+/*
+    name	The name of the object.
+    Public Methods
+    GetInstanceID	Returns the instance id of the object.
+    ToString	Returns the name of the GameObject.
+    Static Methods
+    Destroy	Removes a gameobject, component or asset.
+    DestroyImmediate	Destroys the object obj immediately. You are strongly recommended to use Destroy instead.
+    DontDestroyOnLoad	Makes the object target not be destroyed automatically when loading a new scene.
+    FindObjectOfType	Returns the first active loaded object of Type type.
+    FindObjectsOfType	Returns a list of all active loaded objects of Type type.
+    Instantiate	Clones the object original and returns the clone.
+*/
 var Alviss;
 (function (Alviss) {
-    class Component {
+    class Object {
+        static _newId() {
+            return Object._ids++;
+        }
+        static Destroy(o) {
+            o.destroy();
+        }
+        static Instantiate(o, a, b, parent) {
+            if (!a) {
+                return o.instantiate();
+            }
+            if (a instanceof Alviss.Transform) {
+                return o.instantiate(a, b);
+            }
+            if (a instanceof Alviss.Vector2) {
+                return o.instantiate(a, b, parent);
+            }
+        }
+        destroy() { }
+        instantiate(a, b, parent) {
+            return new Object();
+        }
+    }
+    Object._ids = 0;
+    Alviss.Object = Object;
+})(Alviss || (Alviss = {}));
+/// <reference path="./Object.ts"/>
+var Alviss;
+(function (Alviss) {
+    class Component extends Alviss.Object {
         constructor(gameObject) {
+            super();
             this.gameObject = gameObject;
+            gameObject._components.push(this);
         }
         get scene() {
             return this.gameObject.scene;
@@ -25,6 +69,20 @@ var Alviss;
         get transform() {
             return this.gameObject.transform;
         }
+        get isPrefab() {
+            return this.gameObject.isPrefab;
+        }
+        get isInstance() {
+            return this.gameObject.isInstance;
+        }
+        destroy() {
+            this.gameObject._components.remove(this);
+        }
+        instantiate(a, b, parent) {
+            return this.gameObject.instantiate(a, b, parent);
+        }
+        serialize() { }
+        deserialize(data) { }
         GetComponent(TConstructor) {
             return this.gameObject.GetComponent(TConstructor);
         }
@@ -66,34 +124,79 @@ var Alviss;
 })(Alviss || (Alviss = {}));
 var Alviss;
 (function (Alviss) {
-    class GameObject {
-        constructor(scene) {
-            this.scene = scene;
+    class GameObject extends Alviss.Object {
+        constructor(location) {
+            super();
             this.monoBehaviours = new Alviss.List();
             this._components = new Alviss.List();
+            this.name = "GameObject";
+            if (location instanceof Alviss.Scene) {
+                this._scene = location;
+                this._engine = this._scene.engine;
+            }
+            else if (location instanceof Alviss.Engine) {
+                this.name += " [Prefab]";
+                this._engine = location;
+            }
             this.AddComponent(Alviss.Transform);
-            this.scene.objects.push(this);
+            if (this.isInstance) {
+                this.scene.objects.push(this);
+            }
         }
         get engine() {
-            return this.scene.engine;
+            return this._engine;
+        }
+        get scene() {
+            return this._scene;
+        }
+        get isPrefab() {
+            return this.scene === undefined;
+        }
+        get isInstance() {
+            return this.scene !== undefined;
         }
         destroy() {
-            this.scene.objects.remove(this);
+            while (this._components.length > 0) {
+                this._components.get(0).destroy();
+            }
+            if (this.isInstance) {
+                this.scene.objects.remove(this);
+            }
+        }
+        instantiate(a, b, parent) {
+            let clone;
+            if (this.isPrefab) {
+                clone = new GameObject(this.engine.scenes.get(0));
+            }
+            if (this.isInstance) {
+                clone = new GameObject(this.scene);
+            }
+            this._components.forEach((c) => {
+                clone.AddComponent(c.constructor);
+            });
+            if (a instanceof Alviss.Transform) {
+                this.transform.parent = a;
+                if (typeof (b) === "boolean") {
+                    if (b) {
+                        this.transform.setWorldPosition(0, 0);
+                    }
+                }
+            }
+            else if (a instanceof Alviss.Vector2) {
+                if (parent instanceof Alviss.Transform) {
+                    this.transform.parent = parent;
+                }
+                this.transform.setLocalPosition(a);
+                if (typeof (b) === "number") {
+                    this.transform.localAngle = b;
+                }
+            }
+            return clone;
         }
         AddComponent(TConstructor) {
             let component = this.GetComponent(TConstructor);
             if (!component) {
                 component = new TConstructor(this);
-                this._components.push(component);
-                if (component instanceof Alviss.MonoBehaviour) {
-                    this.monoBehaviours.push(component);
-                }
-                if (component instanceof Alviss.Transform) {
-                    this.transform = component;
-                }
-                if (component instanceof Alviss.SpriteRenderer) {
-                    this.spriteRenderer = component;
-                }
             }
             return component;
         }
@@ -250,6 +353,7 @@ var Alviss;
         constructor(engine) {
             this.engine = engine;
             this.objects = new Alviss.List();
+            this.cameras = new Alviss.List();
             this.colliders = new Alviss.List();
             this.rigidBodies = new Alviss.List();
             this.engine.scenes.push(this);
@@ -292,7 +396,7 @@ var Alviss;
             this.objects.sort((g1, g2) => { return g1.transform.depth - g2.transform.depth; });
             this.objects.forEach((g) => {
                 if (g.spriteRenderer) {
-                    this.engine.context.drawImage(g.spriteRenderer.sprite.image, Math.round(g.transform.position.x - g.spriteRenderer.sprite.image.width * 0.5), Math.round(this.engine.height - (g.transform.position.y + g.spriteRenderer.sprite.image.height * 0.5)));
+                    g.spriteRenderer._render(this.cameras.get(0));
                 }
             });
         }
@@ -322,6 +426,11 @@ var Alviss;
             this.x = x;
             this.y = y;
         }
+        static Tmp(x, y) {
+            Vector2._tmp.x = x;
+            Vector2._tmp.y = y;
+            return Vector2._tmp;
+        }
         static Zero() {
             return new Vector2(0, 0);
         }
@@ -342,20 +451,42 @@ var Alviss;
         clone() {
             return new Vector2(this.x, this.y);
         }
-        add(other) {
-            return new Vector2(this.x + other.x, this.y + other.y);
+        add(other, y) {
+            if (other instanceof Vector2) {
+                return new Vector2(this.x + other.x, this.y + other.y);
+            }
+            else {
+                return new Vector2(this.x + other, this.y + (isFinite(y) ? y : 0));
+            }
         }
-        addInPlace(other) {
-            this.x += other.x;
-            this.y += other.y;
+        addInPlace(other, y) {
+            if (other instanceof Vector2) {
+                this.x += other.x;
+                this.y += other.y;
+            }
+            else {
+                this.x += other;
+                this.y += isFinite(y) ? y : 0;
+            }
             return this;
         }
-        subtract(other) {
-            return new Vector2(this.x - other.x, this.y - other.y);
+        subtract(other, y) {
+            if (other instanceof Vector2) {
+                return new Vector2(this.x - other.x, this.y - other.y);
+            }
+            else {
+                return new Vector2(this.x - other, this.y - (isFinite(y) ? y : 0));
+            }
         }
-        subtractInPlace(other) {
-            this.x -= other.x;
-            this.y -= other.y;
+        subtractInPlace(other, y) {
+            if (other instanceof Vector2) {
+                this.x -= other.x;
+                this.y -= other.y;
+            }
+            else {
+                this.x -= other;
+                this.y -= isFinite(y) ? y : 0;
+            }
             return this;
         }
         scale(s) {
@@ -364,6 +495,25 @@ var Alviss;
         scaleInPlace(s) {
             this.x *= s;
             this.y *= s;
+            return this;
+        }
+        multiply(other, y) {
+            if (other instanceof Vector2) {
+                return new Vector2(this.x * other.x, this.y * other.y);
+            }
+            else {
+                return new Vector2(this.x * other, this.y * (isFinite(y) ? y : 0));
+            }
+        }
+        multiplyInPlace(other, y) {
+            if (other instanceof Vector2) {
+                this.x *= other.x;
+                this.y *= other.y;
+            }
+            else {
+                this.x *= other;
+                this.y *= isFinite(y) ? y : 0;
+            }
             return this;
         }
         normalize() {
@@ -401,6 +551,20 @@ var Alviss;
             this.subtractInPlace(n.clone().scaleInPlace(2 * proj));
             return this;
         }
+        rotate(a) {
+            let cosa = Math.cos(a);
+            let sina = Math.sin(a);
+            return new Vector2(this.x * cosa - this.y * sina, this.x * sina + this.y * cosa);
+        }
+        rotateInPlace(a) {
+            let cosa = Math.cos(a);
+            let sina = Math.sin(a);
+            let x = this.x;
+            let y = this.y;
+            this.x = x * cosa - y * sina;
+            this.y = x * sina + y * cosa;
+            return this;
+        }
         lengthSquared() {
             return this.x * this.x + this.y * this.y;
         }
@@ -408,35 +572,86 @@ var Alviss;
             return Math.sqrt(this.lengthSquared());
         }
     }
+    Vector2._tmp = Vector2.Zero();
     Alviss.Vector2 = Vector2;
+})(Alviss || (Alviss = {}));
+var Alviss;
+(function (Alviss) {
+    class Camera extends Alviss.Component {
+        constructor(gameObject) {
+            super(gameObject);
+            this.width = this.engine.width;
+            this.height = this.engine.height;
+            if (this.isInstance) {
+                this.scene.cameras.push(this);
+            }
+        }
+        destroy() {
+            super.destroy();
+            if (this.isInstance) {
+                this.scene.cameras.remove(this);
+            }
+        }
+        serialize() {
+            return {
+                w: this.width,
+                h: this.height
+            };
+        }
+        deserialize(data) {
+            if (data) {
+                if (isFinite(data.w)) {
+                    this.width = data.w;
+                }
+                if (isFinite(data.h)) {
+                    this.height = data.h;
+                }
+            }
+        }
+    }
+    Alviss.Camera = Camera;
 })(Alviss || (Alviss = {}));
 var Alviss;
 (function (Alviss) {
     class Collider extends Alviss.Component {
         constructor(gameObject) {
             super(gameObject);
-            this.localPosition = Alviss.Vector2.Zero();
-            this._worldPosition = Alviss.Vector2.Zero();
             this._lastCollisions = new Alviss.List();
             this.collisions = new Alviss.List();
             this.name = "Collider";
-            this.localPosition = Alviss.Vector2.Zero();
-            this.scene.colliders.push(this);
-        }
-        get worldPosition() {
-            this._worldPosition.copyFrom(this.gameObject.transform.position).addInPlace(this.localPosition);
-            return this._worldPosition;
-        }
-        set worldPosition(p) {
-            this.localPosition.copyFrom(p).subtractInPlace(this.gameObject.transform.position);
+            if (this.isInstance) {
+                this.scene.colliders.push(this);
+            }
         }
         destroy() {
-            this.scene.colliders.remove(this);
+            super.destroy();
+            if (this.isInstance) {
+                this.scene.colliders.remove(this);
+            }
         }
         intersects(other) {
             return undefined;
         }
+        _createBody() {
+            let worldPosition = this.transform.getWorldPosition();
+            if (this instanceof Alviss.DiscCollider) {
+                this.gameObject._body = Matter.Bodies.circle(worldPosition.x, worldPosition.y, this.radius, { isStatic: true });
+                Matter.World.add(this.scene.physicWorld, [this.gameObject._body]);
+            }
+            else if (this instanceof Alviss.RectangleCollider) {
+                this.gameObject._body = Matter.Bodies.rectangle(worldPosition.x, worldPosition.y, this.width, this.height, { isStatic: true });
+                Matter.World.add(this.scene.physicWorld, [this.gameObject._body]);
+            }
+        }
         _update() {
+            if (!this.gameObject.rigidBody) {
+                if (!this.gameObject._body) {
+                    this._createBody();
+                }
+                else {
+                    Matter.Body.setPosition(this.gameObject._body, this.transform.getWorldPosition());
+                }
+            }
             this.collisions.forEach((collision) => {
                 if (this._lastCollisions.first((lastCollision) => { return collision.collider === lastCollision.collider; })) {
                     this.gameObject._onCollisionStay(collision);
@@ -465,32 +680,44 @@ var Alviss;
             this.name = "DiscCollider";
             this.radius = 8;
         }
+        serialize() {
+            return {
+                r: this.radius
+            };
+        }
+        deserialize(data) {
+            if (data) {
+                if (isFinite(data.r)) {
+                    this.radius = data.r;
+                }
+            }
+        }
         intersects(other) {
             if (other instanceof DiscCollider) {
                 return this.intersectsDisc(other);
             }
-            if (other instanceof Alviss.SquareCollider) {
+            if (other instanceof Alviss.RectangleCollider) {
                 return this.intersectsSquare(other);
             }
             return undefined;
         }
         intersectsDisc(other) {
             let radiusSumSquared = this.radius * this.radius + other.radius * other.radius;
-            if (Alviss.Vector2.DistanceSquared(this.worldPosition, other.worldPosition) < radiusSumSquared) {
+            if (Alviss.Vector2.DistanceSquared(this.transform.getWorldPosition(), other.transform.getWorldPosition()) < radiusSumSquared) {
                 let collision = new Alviss.Collision(other);
-                collision.contact = this.worldPosition.subtract(other.worldPosition);
+                collision.contact = this.transform.getWorldPosition().subtract(other.transform.getWorldPosition());
                 collision.contact.normalizeInPlace();
                 collision.contact.scaleInPlace(other.radius);
-                collision.contact.addInPlace(other.worldPosition);
+                collision.contact.addInPlace(other.transform.getWorldPosition());
                 return collision;
             }
             return undefined;
         }
         intersectsSquare(other) {
-            this._tmpProject.copyFrom(this.worldPosition);
+            this._tmpProject.copyFrom(this.transform.getWorldPosition());
             this._tmpProject.clampXInPlace(other.x0, other.x1);
             this._tmpProject.clampYInPlace(other.y0, other.y1);
-            if (Alviss.Vector2.DistanceSquared(this.worldPosition, this._tmpProject) < this.radius * this.radius) {
+            if (Alviss.Vector2.DistanceSquared(this.transform.getWorldPosition(), this._tmpProject) < this.radius * this.radius) {
                 let collision = new Alviss.Collision(other);
                 collision.contact = this._tmpProject.clone();
             }
@@ -507,6 +734,9 @@ var Alviss;
             super(gameObject);
             this._started = false;
             gameObject.monoBehaviours.push(this);
+            if (this.isInstance) {
+                gameObject.monoBehaviours.push(this);
+            }
         }
         get scene() {
             return this.gameObject.scene;
@@ -515,7 +745,10 @@ var Alviss;
             return this.scene.engine;
         }
         destroy() {
-            this.gameObject.monoBehaviours.remove(this);
+            super.destroy();
+            if (this.isInstance) {
+                this.gameObject.monoBehaviours.remove(this);
+            }
         }
         Start() { }
         ;
@@ -544,25 +777,39 @@ var Alviss;
     class RigidBody extends Alviss.Component {
         constructor(gameObject) {
             super(gameObject);
+            gameObject.rigidBody = this;
             this.collider = this.GetComponent(Alviss.Collider);
-            this.scene.rigidBodies.push(this);
+            if (this.isInstance) {
+                this.scene.rigidBodies.push(this);
+            }
         }
         destroy() {
-            this.scene.rigidBodies.remove(this);
+            super.destroy();
+            this.gameObject.rigidBody = undefined;
+            if (this.isInstance) {
+                this.scene.rigidBodies.remove(this);
+            }
         }
         _createBody() {
-            if (this.collider instanceof Alviss.DiscCollider) {
-                this._body = Matter.Bodies.circle(this.transform.position.x, this.transform.position.y, this.collider.radius);
-                Matter.World.add(this.scene.physicWorld, [this._body]);
+            if (this.collider) {
+                let worldPosition = this.transform.getWorldPosition();
+                if (this.collider instanceof Alviss.DiscCollider) {
+                    this.gameObject._body = Matter.Bodies.circle(worldPosition.x, worldPosition.y, this.collider.radius);
+                    Matter.World.add(this.scene.physicWorld, [this.gameObject._body]);
+                }
+                else if (this.collider instanceof Alviss.RectangleCollider) {
+                    this.gameObject._body = Matter.Bodies.rectangle(worldPosition.x, worldPosition.y, this.collider.width, this.collider.height);
+                    Matter.World.add(this.scene.physicWorld, [this.gameObject._body]);
+                }
             }
         }
         _update() {
-            if (!this._body) {
+            if (!this.gameObject._body) {
                 this._createBody();
             }
-            if (this._body) {
-                this.transform.position.x = this._body.position.x;
-                this.transform.position.y = this._body.position.y;
+            if (this.gameObject._body) {
+                this.transform.setWorldPosition(Alviss.Vector2.Tmp(this.gameObject._body.position.x, this.gameObject._body.position.y));
+                this.transform.worldAngle = this.gameObject._body.angle;
             }
         }
     }
@@ -573,50 +820,85 @@ var Alviss;
     class SpriteRenderer extends Alviss.Component {
         constructor(gameObject) {
             super(gameObject);
+            this._screenPosition = Alviss.Vector2.Zero();
+            gameObject.spriteRenderer = this;
+        }
+        destroy() {
+            super.destroy();
+            this.gameObject.spriteRenderer = undefined;
+        }
+        _render(camera) {
+            this._screenPosition.copyFrom(this.transform.getWorldPosition());
+            if (camera) {
+                this._screenPosition.subtractInPlace(camera.transform.getWorldPosition());
+                this._screenPosition.addInPlace(this.engine.width * 0.5, this.engine.height * 0.5);
+            }
+            this.engine.context.translate(this._screenPosition.x, this.engine.height - this._screenPosition.y);
+            this.engine.context.rotate(this.transform.worldAngle);
+            this.engine.context.drawImage(this.sprite.image, -this.sprite.image.width * 0.5, -this.sprite.image.height * 0.5);
+            this.engine.context.rotate(-this.transform.worldAngle);
+            this.engine.context.translate(-this._screenPosition.x, -this.engine.height + this._screenPosition.y);
         }
     }
     Alviss.SpriteRenderer = SpriteRenderer;
 })(Alviss || (Alviss = {}));
 var Alviss;
 (function (Alviss) {
-    class SquareCollider extends Alviss.Collider {
+    class RectangleCollider extends Alviss.Collider {
         constructor(gameObject) {
             super(gameObject);
             this._tmpProject = Alviss.Vector2.Zero();
             this.name = "SquareCollider";
-            this.size = 8;
+            this.width = 8;
+            this.height = 8;
         }
         get x0() {
-            return this.worldPosition.x - this.size * 0.5;
+            return this.transform.getWorldPosition().x - this.width * 0.5;
         }
         get x1() {
-            return this.worldPosition.x + this.size * 0.5;
+            return this.transform.getWorldPosition().x + this.width * 0.5;
         }
         get y0() {
-            return this.worldPosition.y - this.size * 0.5;
+            return this.transform.getWorldPosition().y - this.height * 0.5;
         }
         get y1() {
-            return this.worldPosition.y + this.size * 0.5;
+            return this.transform.getWorldPosition().y + this.height * 0.5;
+        }
+        serialize() {
+            return {
+                w: this.width,
+                h: this.height
+            };
+        }
+        deserialize(data) {
+            if (data) {
+                if (isFinite(data.w)) {
+                    this.width = data.w;
+                }
+                if (isFinite(data.h)) {
+                    this.height = data.h;
+                }
+            }
         }
         intersects(other) {
             if (other instanceof Alviss.DiscCollider) {
                 return this.intersectsDisc(other);
             }
-            else if (other instanceof SquareCollider) {
+            else if (other instanceof RectangleCollider) {
                 return this.intersectsSquare(other);
             }
             return undefined;
         }
         intersectsDisc(other) {
-            this._tmpProject.copyFrom(other.worldPosition);
+            this._tmpProject.copyFrom(other.transform.getWorldPosition());
             this._tmpProject.clampXInPlace(this.x0, this.x1);
             this._tmpProject.clampYInPlace(this.y0, this.y1);
-            if (Alviss.Vector2.DistanceSquared(other.worldPosition, this._tmpProject) < other.radius * other.radius) {
+            if (Alviss.Vector2.DistanceSquared(other.transform.getWorldPosition(), this._tmpProject) < other.radius * other.radius) {
                 let collision = new Alviss.Collision(other);
-                collision.contact = this._tmpProject.subtract(other.worldPosition);
+                collision.contact = this._tmpProject.subtract(other.transform.getWorldPosition());
                 collision.contact.normalizeInPlace();
                 collision.contact.scaleInPlace(other.radius);
-                collision.contact.addInPlace(other.worldPosition);
+                collision.contact.addInPlace(other.transform.getWorldPosition());
             }
             return undefined;
         }
@@ -625,28 +907,138 @@ var Alviss;
                 return undefined;
             }
             let collision = new Alviss.Collision(other);
-            collision.contact = this.worldPosition.clone();
+            collision.contact = this.transform.getWorldPosition().clone();
             collision.contact.clampXInPlace(other.x0, other.x1);
             collision.contact.clampYInPlace(other.y0, other.y1);
             return collision;
         }
     }
-    Alviss.SquareCollider = SquareCollider;
+    Alviss.RectangleCollider = RectangleCollider;
 })(Alviss || (Alviss = {}));
 var Alviss;
 (function (Alviss) {
     class Transform extends Alviss.Component {
         constructor(gameObject) {
             super(gameObject);
+            this._worldPositionIsDirty = true;
+            this._worldPosition = Alviss.Vector2.Zero();
+            this._localPosition = Alviss.Vector2.Zero();
+            this._localAngle = 0;
             this.depth = 0;
+            this.children = new Alviss.List();
             this.name = "Transform";
-            this.position = Alviss.Vector2.Zero();
+            gameObject.transform = this;
         }
-        get dx() {
-            return Math.round(this.position.x);
+        getWorldPosition() {
+            if (this._worldPositionIsDirty) {
+                this._worldPosition.copyFrom(this._localPosition);
+                if (this.parent) {
+                    this._worldPosition.rotateInPlace(this.parent.worldAngle);
+                    this._worldPosition.addInPlace(this.parent.getWorldPosition());
+                }
+                this._worldPositionIsDirty = false;
+            }
+            return this._worldPosition;
         }
-        get dy() {
-            return Math.round(this.position.y);
+        setWorldPosition(p, y) {
+            let v;
+            if (p instanceof Alviss.Vector2) {
+                v = p;
+            }
+            else {
+                v = Alviss.Vector2.Tmp(p, isFinite(y) ? y : 0);
+            }
+            this._localPosition.copyFrom(v);
+            if (this.parent) {
+                this._localPosition.subtractInPlace(this.parent.getWorldPosition());
+                this._localPosition.rotateInPlace(-this.parent.worldAngle);
+            }
+            this.flagWorldPosDirty();
+        }
+        getLocalPosition() {
+            return this._localPosition;
+        }
+        setLocalPosition(p, y) {
+            let v;
+            if (p instanceof Alviss.Vector2) {
+                v = p;
+            }
+            else {
+                v = Alviss.Vector2.Tmp(p, isFinite(y) ? y : 0);
+            }
+            this._localPosition.copyFrom(v);
+            this.flagWorldPosDirty();
+        }
+        get localAngle() {
+            return this._localAngle;
+        }
+        set localAngle(a) {
+            this._localAngle = a;
+            this._worldPositionIsDirty = true;
+        }
+        get worldAngle() {
+            if (this.parent) {
+                return this.parent.worldAngle + this.localAngle;
+            }
+            return this.localAngle;
+        }
+        set worldAngle(a) {
+            if (this.parent) {
+                this.localAngle = a - this.parent.worldAngle;
+            }
+            else {
+                this.localAngle = a;
+            }
+        }
+        get parent() {
+            return this._parent;
+        }
+        set parent(t) {
+            if (this._parent) {
+                this._parent.children.remove(this);
+            }
+            this._parent = t;
+            if (this._parent) {
+                this._parent.children.push(this);
+            }
+            this.flagWorldPosDirty();
+        }
+        flagWorldPosDirty() {
+            this._worldPositionIsDirty = true;
+            this.children.forEach((c) => {
+                c.flagWorldPosDirty();
+            });
+        }
+        destroy() {
+            this.gameObject.transform = undefined;
+        }
+        serialize() {
+            return {
+                x: this._localPosition.x,
+                y: this._localPosition.y,
+                a: this.localAngle
+            };
+        }
+        deserialize(data) {
+            if (data) {
+                if (isFinite(data.x) && isFinite(data.y)) {
+                    this.setLocalPosition(data.x, data.y);
+                }
+                if (isFinite(data.a)) {
+                    this.localAngle = data.a;
+                }
+            }
+        }
+        Translate(v, y) {
+            let vector;
+            if (v instanceof Alviss.Vector2) {
+                vector = v;
+            }
+            else {
+                vector = Alviss.Vector2.Tmp(v, y);
+            }
+            this._localPosition.addInPlace(vector);
+            this.flagWorldPosDirty();
         }
     }
     Alviss.Transform = Transform;
@@ -744,6 +1136,19 @@ var Alviss;
                 }
             }
             return new Alviss.Sprite(new ImageData(buffer, size, size));
+        }
+        static CreateRectangleSprite(width, height, red = 1, green = 1, blue = 1, alpha = 1) {
+            let buffer = new Uint8ClampedArray(width * height * 4);
+            for (let j = 0; j < height; j++) {
+                for (let i = 0; i < width; i++) {
+                    let index = i + j * width;
+                    buffer[index * 4] = red;
+                    buffer[index * 4 + 1] = green;
+                    buffer[index * 4 + 2] = blue;
+                    buffer[index * 4 + 3] = alpha;
+                }
+            }
+            return new Alviss.Sprite(new ImageData(buffer, width, height));
         }
         static CreateDiscSprite(radius, red = 1, green = 1, blue = 1, alpha = 1) {
             let buffer = new Uint8ClampedArray(2 * radius * 2 * radius * 4);

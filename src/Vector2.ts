@@ -9,6 +9,13 @@ namespace Alviss {
 
         }
 
+        private static _tmp: Vector2 = Vector2.Zero();
+        public static Tmp(x: number, y: number): Vector2 {
+            Vector2._tmp.x = x;
+            Vector2._tmp.y = y;
+            return Vector2._tmp;
+        }
+
         public static Zero(): Vector2 {
             return new Vector2(0, 0);
         }
@@ -35,23 +42,55 @@ namespace Alviss {
             return new Vector2(this.x, this.y);
         }
 
-        public add(other: Vector2): Vector2 {
-            return new Vector2(this.x + other.x, this.y + other.y);
+        public add(other: Vector2): Vector2;
+        public add(x: number, y: number): Vector2;
+        public add(other: Vector2 | number, y?: number): Vector2 {
+            if (other instanceof Vector2) {
+                return new Vector2(this.x + other.x, this.y + other.y);
+            }
+            else {
+                return new Vector2(this.x + other, this.y + (isFinite(y) ? y : 0));
+            }
         }
 
-        public addInPlace(other: Vector2): Vector2 {
-            this.x += other.x;
-            this.y += other.y;
+
+        public addInPlace(other: Vector2): Vector2;
+        public addInPlace(x: number, y: number): Vector2;
+        public addInPlace(other: Vector2 | number, y?: number): Vector2 {
+            if (other instanceof Vector2) {
+                this.x += other.x;
+                this.y += other.y;
+            }
+            else {
+                this.x += other;
+                this.y += isFinite(y) ? y :0
+            }
             return this;
         }
 
-        public subtract(other: Vector2): Vector2 {
-            return new Vector2(this.x - other.x, this.y - other.y);
+        public subtract(other: Vector2): Vector2;
+        public subtract(x: number, y: number): Vector2;
+        public subtract(other: Vector2 | number, y?: number): Vector2 {
+            if (other instanceof Vector2) {
+                return new Vector2(this.x - other.x, this.y - other.y);
+            }
+            else {
+                return new Vector2(this.x - other, this.y - (isFinite(y) ? y : 0));
+            }
         }
 
-        public subtractInPlace(other: Vector2): Vector2 {
-            this.x -= other.x;
-            this.y -= other.y;
+
+        public subtractInPlace(other: Vector2): Vector2;
+        public subtractInPlace(x: number, y: number): Vector2;
+        public subtractInPlace(other: Vector2 | number, y?: number): Vector2 {
+            if (other instanceof Vector2) {
+                this.x -= other.x;
+                this.y -= other.y;
+            }
+            else {
+                this.x -= other;
+                this.y -= isFinite(y) ? y :0
+            }
             return this;
         }
 
@@ -62,6 +101,32 @@ namespace Alviss {
         public scaleInPlace(s: number): Vector2 {
             this.x *= s;
             this.y *= s;
+            return this;
+        }
+
+        public multiply(other: Vector2): Vector2;
+        public multiply(x: number, y: number): Vector2;
+        public multiply(other: Vector2 | number, y?: number): Vector2 {
+            if (other instanceof Vector2) {
+                return new Vector2(this.x * other.x, this.y * other.y);
+            }
+            else {
+                return new Vector2(this.x * other, this.y * (isFinite(y) ? y : 0));
+            }
+        }
+
+
+        public multiplyInPlace(other: Vector2): Vector2;
+        public multiplyInPlace(x: number, y: number): Vector2;
+        public multiplyInPlace(other: Vector2 | number, y?: number): Vector2 {
+            if (other instanceof Vector2) {
+                this.x *= other.x;
+                this.y *= other.y;
+            }
+            else {
+                this.x *= other;
+                this.y *= isFinite(y) ? y :0
+            }
             return this;
         }
 
@@ -111,6 +176,25 @@ namespace Alviss {
             n = n.normalize();
             let proj = Vector2.Dot(this, n);
             this.subtractInPlace(n.clone().scaleInPlace(2 * proj));
+            return this;
+        }
+
+        public rotate(a: number): Vector2 {
+            let cosa = Math.cos(a);
+            let sina = Math.sin(a);
+            return new Vector2(
+                this.x * cosa - this.y * sina,
+                this.x * sina + this.y * cosa
+            );
+        }
+
+        public rotateInPlace(a: number): Vector2 {
+            let cosa = Math.cos(a);
+            let sina = Math.sin(a);
+            let x = this.x;
+            let y = this.y;
+            this.x = x * cosa - y * sina;
+            this.y = x * sina + y * cosa;
             return this;
         }
 

@@ -17,17 +17,24 @@ declare module Matter {
         gravity: IGravity;
     }
 
-    class Bodies {
-        static rectangle(x: number, y: number, width: number, height: number): Body;
-        static circle(x: number, y: number, radius: number): Body;
+    interface IBodyOptions {
+        isStatic: boolean;
     }
 
-    interface IPosition {
+    class Bodies {
+        static rectangle(x: number, y: number, width: number, height: number, options?: IBodyOptions): Body;
+        static circle(x: number, y: number, radius: number, options?: IBodyOptions): Body;
+    }
+
+    interface IVector {
         x: number;
         y: number;
     }
 
     class Body {
-        position: IPosition;
+        static setPosition(body: Body, position: IVector): void;
+        position: IVector;
+        angle: number;
+        isStatic: boolean;
     }
 }

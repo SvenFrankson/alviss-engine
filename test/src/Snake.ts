@@ -20,34 +20,28 @@ class Snake extends Alviss.MonoBehaviour {
             `,
             256, 256, 0, 256
         );
-        this.gameObject.transform.position.x = 8 * 4;
-        this.gameObject.transform.position.y = 8 * 4;
+        this.gameObject.transform.setWorldPosition(32, 32);
     }
 
     public Update(): void {
         if (this.engine.input.getPadButton(Alviss.PadButton.Up)) {
-            this.direction.x = 0;
-            this.direction.y = 1;
+            this.direction = new Alviss.Vector2(0, 1);
         }
         if (this.engine.input.getPadButton(Alviss.PadButton.Down)) {
-            this.direction.x = 0;
-            this.direction.y = - 1;
+            this.direction = new Alviss.Vector2(0, - 1);
         }
         if (this.engine.input.getPadButton(Alviss.PadButton.Right)) {
-            this.direction.x = 1;
-            this.direction.y = 0;
+            this.direction = new Alviss.Vector2(1, 0);
         }
         if (this.engine.input.getPadButton(Alviss.PadButton.Left)) {
-            this.direction.x = - 1;
-            this.direction.y = 0;
+            this.direction = new Alviss.Vector2(- 1, 0);
         }
         this.t++;
         if (this.t > 60 / this.speed) {
             this.t = 0;
-            let lastX = this.gameObject.transform.position.x;
-            let lastY = this.gameObject.transform.position.y;
-            this.gameObject.transform.position.x += this.direction.x * 8;
-            this.gameObject.transform.position.y += this.direction.y * 8;
+            let lastX = this.gameObject.transform.getWorldPosition().x;
+            let lastY = this.gameObject.transform.getWorldPosition().y;
+            this.gameObject.transform.Translate(this.direction.scale(8));
             if (Math.random() > 0.9) {
                 let newPart = new Alviss.GameObject(this.scene);
                 newPart.AddComponent(Alviss.SpriteRenderer);
@@ -64,8 +58,8 @@ class Snake extends Alviss.MonoBehaviour {
                     `,
                     256, 256, 0, 256
                 );
-                newPart.transform.position.x = lastX;
-                newPart.transform.position.y = lastY;
+                newPart.transform.getWorldPosition().x = lastX;
+                newPart.transform.getWorldPosition().y = lastY;
                 this.parts.push_first(newPart);
                 this.speed *= 1.05;
             }
@@ -73,13 +67,11 @@ class Snake extends Alviss.MonoBehaviour {
                 for (let i = this.parts.length - 1; i > 0; i--) {
                     let part = this.parts.get(i);
                     let previousPart = this.parts.get(i - 1);
-                    part.transform.position.x = previousPart.transform.position.x;
-                    part.transform.position.y = previousPart.transform.position.y;
+                    part.transform.setWorldPosition(previousPart.transform.getWorldPosition());
                 }
                 let part0 = this.parts.get(0);
                 if (part0) {
-                    part0.transform.position.x = lastX;
-                    part0.transform.position.y = lastY;
+                    part0.transform.setWorldPosition(lastX, lastY);
                 }
             }
         }

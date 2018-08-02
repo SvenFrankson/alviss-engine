@@ -2,34 +2,48 @@ module Alviss {
 
     export class Collider extends Component {
 
-        public localPosition: Vector2 = Vector2.Zero();
-        private _worldPosition: Vector2 = Vector2.Zero();
-        public get worldPosition(): Vector2 {
-            this._worldPosition.copyFrom(this.gameObject.transform.position).addInPlace(this.localPosition);
-            return this._worldPosition;
-        }
-        public set worldPosition(p: Vector2) {
-            this.localPosition.copyFrom(p).subtractInPlace(this.gameObject.transform.position); 
-        }
-
         constructor(gameObject: GameObject) {
             super(gameObject);
             this.name = "Collider";
-            this.localPosition = Vector2.Zero();
-            this.scene.colliders.push(this);
+            if (this.isInstance) {
+                this.scene.colliders.push(this);
+            }
         }
 
         public destroy(): void {
-            this.scene.colliders.remove(this);
+            super.destroy();
+            if (this.isInstance) {
+                this.scene.colliders.remove(this);
+            }
         }
 
         public intersects(other: Collider): Collision {
             return undefined;
         }
 
+        private _createBody(): void {
+            let worldPosition = this.transform.getWorldPosition();
+            if (this instanceof DiscCollider) {
+                this.gameObject._body = Matter.Bodies.circle(worldPosition.x, worldPosition.y, this.radius, {isStatic: true});
+                Matter.World.add(this.scene.physicWorld, [this.gameObject._body]);
+            }
+            else if (this instanceof RectangleCollider) {
+                this.gameObject._body = Matter.Bodies.rectangle(worldPosition.x, worldPosition.y, this.width, this.height, {isStatic: true});
+                Matter.World.add(this.scene.physicWorld, [this.gameObject._body]);
+            }
+        }
+
         private _lastCollisions: List<Collision> = new List<Collision>();
         public collisions: List<Collision> = new List<Collision>();
         public _update(): void {
+            if (!this.gameObject.rigidBody) {
+                if (!this.gameObject._body) {
+                    this._createBody();
+                }
+                else {
+                    Matter.Body.setPosition(this.gameObject._body, this.transform.getWorldPosition());
+                }
+            }
             this.collisions.forEach(
                 (collision) => {
                     if (this._lastCollisions.first((lastCollision) => { return collision.collider === lastCollision.collider; })) {

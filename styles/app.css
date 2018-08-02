@@ -6,10 +6,9 @@ body {
 
 canvas {
   margin: 32px;
-  width: 480px;
-  height: 480px;
+  width: 256px;
+  height: 256px;
   display: block;
   touch-action: none;
-  border: 1px solid black;
-  image-rendering: pixelated;
+  border: 1px solid red;
 }

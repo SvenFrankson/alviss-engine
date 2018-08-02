@@ -6,6 +6,27 @@ module Alviss {
 
         constructor(gameObject: GameObject) {
             super(gameObject);
+            gameObject.spriteRenderer = this;
+        }
+
+        public destroy(): void {
+            super.destroy();
+            this.gameObject.spriteRenderer = undefined;
+        }
+
+        private _screenPosition: Vector2 = Vector2.Zero();
+        public _render(camera?: Camera): void {
+            this._screenPosition.copyFrom(this.transform.getWorldPosition());
+            if (camera) {
+                this._screenPosition.subtractInPlace(camera.transform.getWorldPosition());
+                this._screenPosition.addInPlace(this.engine.width * 0.5, this.engine.height * 0.5);
+            }
+            
+            this.engine.context.translate(this._screenPosition.x, this.engine.height - this._screenPosition.y);
+            this.engine.context.rotate(this.transform.worldAngle);
+            this.engine.context.drawImage(this.sprite.image, - this.sprite.image.width * 0.5, - this.sprite.image.height * 0.5);
+            this.engine.context.rotate(- this.transform.worldAngle);
+            this.engine.context.translate(- this._screenPosition.x, - this.engine.height + this._screenPosition.y);
         }
     }
 }

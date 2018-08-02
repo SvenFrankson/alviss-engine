@@ -16,6 +16,20 @@ namespace Alviss {
             return new Sprite(new ImageData(buffer, size, size));
         }
 
+        public static CreateRectangleSprite(width: number, height: number, red: number = 1, green: number = 1, blue: number = 1, alpha: number = 1): Sprite {
+            let buffer = new Uint8ClampedArray(width * height * 4);
+            for (let j = 0; j < height; j++) {
+                for (let i = 0; i < width; i++) {
+                    let index = i + j * width;
+                    buffer[index * 4] = red;
+                    buffer[index * 4 + 1] = green;
+                    buffer[index * 4 + 2] = blue;
+                    buffer[index * 4 + 3] = alpha;
+                }
+            }
+            return new Sprite(new ImageData(buffer, width, height));
+        }
+
         public static CreateDiscSprite(radius: number, red: number = 1, green: number = 1, blue: number = 1, alpha: number = 1): Sprite {
             let buffer = new Uint8ClampedArray(2 * radius * 2 * radius * 4);
             let radiusSquared = (radius) * (radius);

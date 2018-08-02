@@ -1,39 +1,98 @@
 module Alviss {
 
-    export class GameObject {
+    export class GameObject extends Object {
 
+        public _body: Matter.Body;
         public transform: Transform;
         public spriteRenderer: SpriteRenderer;
+        public rigidBody: RigidBody;
         public monoBehaviours: List<MonoBehaviour> = new List<MonoBehaviour>();
-        private _components: List<Component> = new List<Component>();
+        public _components: List<Component> = new List<Component>();
 
+        private _engine: Engine;
         public get engine(): Engine {
-            return this.scene.engine;
+            return this._engine;
+        }
+        private _scene: Scene;
+        public get scene(): Scene {
+            return this._scene;
+        }
+        public get isPrefab(): boolean {
+            return this.scene === undefined;
+        }
+        public get isInstance(): boolean {
+            return this.scene !== undefined;
         }
 
-        constructor(public scene: Scene) {
+        constructor(scene: Scene);
+        constructor(engine: Engine);
+        constructor(location : Scene | Engine) {
+            super();
+            this.name = "GameObject";
+            if (location instanceof Scene) {
+                this._scene = location;
+                this._engine = this._scene.engine;
+            }
+            else if (location instanceof Engine) {
+                this.name += " [Prefab]";
+                this._engine = location;
+            }
             this.AddComponent(Transform);
-            this.scene.objects.push(this);
+            if (this.isInstance) {
+                this.scene.objects.push(this);
+            }
         }
 
         public destroy(): void {
-            this.scene.objects.remove(this);
+            while (this._components.length > 0) {
+                this._components.get(0).destroy();
+            }
+            if (this.isInstance) {
+                this.scene.objects.remove(this);
+            }
+        }
+
+        public instantiate(a?: Transform | Vector2, b?: boolean | number, parent?: Transform): Object {
+            let clone: GameObject;
+            
+            if (this.isPrefab) {
+                clone = new GameObject(this.engine.scenes.get(0));
+            }
+            if (this.isInstance) {
+                clone = new GameObject(this.scene);
+            }
+
+            this._components.forEach(
+                (c) => {
+                    clone.AddComponent(c.constructor as (new (gameObject: GameObject) => any));
+                }
+            )
+
+            if (a instanceof Transform) {
+                this.transform.parent = a;
+                if (typeof(b) === "boolean") {
+                    if (b as boolean) {
+                        this.transform.setWorldPosition(0, 0);
+                    } 
+                }
+            }
+            else if (a instanceof Vector2) {
+                if (parent instanceof Transform) {
+                    this.transform.parent = parent;
+                }
+                this.transform.setLocalPosition(a);
+                if (typeof(b) === "number") {
+                    this.transform.localAngle = b as number;
+                }
+            }
+
+            return clone;
         }
 
         public AddComponent<T extends Component>(TConstructor: new (gameObject: GameObject) => T): T {
             let component = this.GetComponent(TConstructor);
             if (!component) {
                 component = new TConstructor(this);
-                this._components.push(component);
-                if (component instanceof MonoBehaviour) {
-                    this.monoBehaviours.push(component);
-                }
-                if (component instanceof Transform) {
-                    this.transform = component;
-                }
-                if (component instanceof SpriteRenderer) {
-                    this.spriteRenderer = component;
-                }
             }
             return component;
         }

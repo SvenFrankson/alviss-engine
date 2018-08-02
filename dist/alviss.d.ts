@@ -7,13 +7,37 @@ declare module Alviss {
     }
 }
 declare module Alviss {
-    class Component {
+    class Object {
+        private static _ids;
+        private static _newId();
         name: string;
+        static Destroy(o: Object): void;
+        static Instantiate(o: Object): Object;
+        static Instantiate(o: Object, parent: Transform): Object;
+        static Instantiate(o: Object, parent: Transform, instantiateInWorldSpace: boolean): Object;
+        static Instantiate(o: Object, position: Vector2, angle: number): Object;
+        static Instantiate(o: Object, position: Vector2, angle: number, parent: Transform): Object;
+        destroy(): void;
+        instantiate(): Object;
+        instantiate(parent: Transform): Object;
+        instantiate(parent: Transform, instantiateInWorldSpace: boolean): Object;
+        instantiate(position: Vector2, angle: number): Object;
+        instantiate(position: Vector2, angle: number, parent: Transform): Object;
+    }
+}
+declare module Alviss {
+    class Component extends Object {
         gameObject: GameObject;
         readonly scene: Scene;
         readonly engine: Engine;
         readonly transform: Transform;
+        readonly isPrefab: boolean;
+        readonly isInstance: boolean;
         constructor(gameObject: GameObject);
+        destroy(): void;
+        instantiate(a?: Transform | Vector2, b?: boolean | number, parent?: Transform): Object;
+        serialize(): any;
+        deserialize(data: any): void;
         GetComponent<T extends Component>(TConstructor: new (gameObject: GameObject) => T): T;
         GetComponents<T extends Component>(TConstructor: new (gameObject: GameObject) => T): T[];
     }
@@ -31,15 +55,23 @@ declare module Alviss {
     }
 }
 declare module Alviss {
-    class GameObject {
-        scene: Scene;
+    class GameObject extends Object {
+        _body: Matter.Body;
         transform: Transform;
         spriteRenderer: SpriteRenderer;
+        rigidBody: RigidBody;
         monoBehaviours: List<MonoBehaviour>;
-        private _components;
+        _components: List<Component>;
+        private _engine;
         readonly engine: Engine;
+        private _scene;
+        readonly scene: Scene;
+        readonly isPrefab: boolean;
+        readonly isInstance: boolean;
         constructor(scene: Scene);
+        constructor(engine: Engine);
         destroy(): void;
+        instantiate(a?: Transform | Vector2, b?: boolean | number, parent?: Transform): Object;
         AddComponent<T extends Component>(TConstructor: new (gameObject: GameObject) => T): T;
         GetComponent<T extends Component>(TConstructor: new (gameObject: GameObject) => T): T;
         GetComponents<T extends Component>(TConstructor: new (gameObject: GameObject) => T): T[];
@@ -103,6 +135,7 @@ declare module Alviss {
         private physicEngine;
         readonly physicWorld: Matter.World;
         objects: List<GameObject>;
+        cameras: List<Camera>;
         colliders: List<Collider>;
         rigidBodies: List<RigidBody>;
         constructor(engine: Engine);
@@ -124,6 +157,8 @@ declare namespace Alviss {
         x: number;
         y: number;
         constructor(x?: number, y?: number);
+        private static _tmp;
+        static Tmp(x: number, y: number): Vector2;
         static Zero(): Vector2;
         static DistanceSquared(a: Vector2, b: Vector2): number;
         static Distance(a: Vector2, b: Vector2): number;
@@ -131,11 +166,19 @@ declare namespace Alviss {
         copyFrom(other: Vector2): Vector2;
         clone(): Vector2;
         add(other: Vector2): Vector2;
+        add(x: number, y: number): Vector2;
         addInPlace(other: Vector2): Vector2;
+        addInPlace(x: number, y: number): Vector2;
         subtract(other: Vector2): Vector2;
+        subtract(x: number, y: number): Vector2;
         subtractInPlace(other: Vector2): Vector2;
+        subtractInPlace(x: number, y: number): Vector2;
         scale(s: number): Vector2;
         scaleInPlace(s: number): Vector2;
+        multiply(other: Vector2): Vector2;
+        multiply(x: number, y: number): Vector2;
+        multiplyInPlace(other: Vector2): Vector2;
+        multiplyInPlace(x: number, y: number): Vector2;
         normalize(): Vector2;
         normalizeInPlace(): Vector2;
         clampX(minX: number, maxX: number): Vector2;
@@ -144,18 +187,28 @@ declare namespace Alviss {
         clampYInPlace(minY: number, maxY: number): Vector2;
         mirror(n: Vector2): Vector2;
         mirrorInPlace(n: Vector2): Vector2;
+        rotate(a: number): Vector2;
+        rotateInPlace(a: number): Vector2;
         lengthSquared(): number;
         length(): number;
     }
 }
 declare module Alviss {
+    class Camera extends Component {
+        width: number;
+        height: number;
+        constructor(gameObject: GameObject);
+        destroy(): void;
+        serialize(): any;
+        deserialize(data: any): void;
+    }
+}
+declare module Alviss {
     class Collider extends Component {
-        localPosition: Vector2;
-        private _worldPosition;
-        worldPosition: Vector2;
         constructor(gameObject: GameObject);
         destroy(): void;
         intersects(other: Collider): Collision;
+        private _createBody();
         private _lastCollisions;
         collisions: List<Collision>;
         _update(): void;
@@ -165,6 +218,8 @@ declare module Alviss {
     class DiscCollider extends Collider {
         radius: number;
         constructor(gameObject: GameObject);
+        serialize(): any;
+        deserialize(data: any): void;
         intersects(other: Collider): Collision;
         private intersectsDisc(other);
         private _tmpProject;
@@ -188,7 +243,6 @@ declare module Alviss {
 }
 declare module Alviss {
     class RigidBody extends Component {
-        private _body;
         collider: Collider;
         constructor(gameObject: GameObject);
         destroy(): void;
@@ -200,16 +254,22 @@ declare module Alviss {
     class SpriteRenderer extends Component {
         sprite: Sprite;
         constructor(gameObject: GameObject);
+        destroy(): void;
+        private _screenPosition;
+        _render(camera?: Camera): void;
     }
 }
 declare module Alviss {
-    class SquareCollider extends Collider {
-        size: number;
+    class RectangleCollider extends Collider {
+        width: number;
+        height: number;
         readonly x0: number;
         readonly x1: number;
         readonly y0: number;
         readonly y1: number;
         constructor(gameObject: GameObject);
+        serialize(): any;
+        deserialize(data: any): void;
         intersects(other: Collider): Collision;
         private _tmpProject;
         private intersectsDisc(other);
@@ -218,11 +278,29 @@ declare module Alviss {
 }
 declare module Alviss {
     class Transform extends Component {
-        position: Vector2;
-        readonly dx: number;
-        readonly dy: number;
+        private _worldPositionIsDirty;
+        private _worldPosition;
+        getWorldPosition(): Vector2;
+        setWorldPosition(p: Vector2): void;
+        setWorldPosition(x: number, y: number): void;
+        private _localPosition;
+        getLocalPosition(): Vector2;
+        setLocalPosition(p: Vector2): void;
+        setLocalPosition(x: number, y: number): void;
+        private _localAngle;
+        localAngle: number;
+        worldAngle: number;
         depth: number;
+        private _parent;
+        parent: Transform;
+        children: List<Transform>;
+        flagWorldPosDirty(): void;
         constructor(gameObject: GameObject);
+        destroy(): void;
+        serialize(): any;
+        deserialize(data: any): void;
+        Translate(v: Vector2): void;
+        Translate(x: number, y: number): void;
     }
 }
 declare namespace Alviss {
@@ -251,6 +329,7 @@ declare namespace Alviss {
 declare namespace Alviss {
     class SpriteTools {
         static CreateSquareSprite(size: number, red?: number, green?: number, blue?: number, alpha?: number): Sprite;
+        static CreateRectangleSprite(width: number, height: number, red?: number, green?: number, blue?: number, alpha?: number): Sprite;
         static CreateDiscSprite(radius: number, red?: number, green?: number, blue?: number, alpha?: number): Sprite;
         static CreateSprite(ascii: string, red?: number, green?: number, blue?: number, alpha?: number): Sprite;
     }

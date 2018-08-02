@@ -7,6 +7,7 @@ module Alviss {
             return this.physicEngine.world;
         }
         public objects: List<GameObject> = new List<GameObject>();
+        public cameras: List<Camera> = new List<Camera>();
         public colliders: List<Collider> = new List<Collider>();
         public rigidBodies: List<RigidBody> = new List<RigidBody>();
 
@@ -65,11 +66,7 @@ module Alviss {
             this.objects.forEach(
                 (g) => {
                     if (g.spriteRenderer) {
-                        this.engine.context.drawImage(
-                            g.spriteRenderer.sprite.image,
-                            Math.round(g.transform.position.x - g.spriteRenderer.sprite.image.width * 0.5),
-                            Math.round(this.engine.height - (g.transform.position.y + g.spriteRenderer.sprite.image.height * 0.5))
-                        );
+                        g.spriteRenderer._render(this.cameras.get(0));
                     }
                 }
             );
