@@ -348,6 +348,6 @@ declare namespace Alviss {
         static CreateSquareSprite(size: number, red?: number, green?: number, blue?: number, alpha?: number): Sprite;
         static CreateRectangleSprite(width: number, height: number, red?: number, green?: number, blue?: number, alpha?: number): Sprite;
         static CreateDiscSprite(radius: number, red?: number, green?: number, blue?: number, alpha?: number): Sprite;
-        static CreateSprite(ascii: string, red?: number, green?: number, blue?: number, alpha?: number): Sprite;
+        static CreateSprite(ascii: string, red?: number, green?: number, blue?: number, alpha?: number, pixelSize?: number): Sprite;
     }
 }

@@ -53,7 +53,7 @@ namespace Alviss {
             return new Sprite(new ImageData(buffer, 2 * radius, 2 * radius));
         }
 
-        public static CreateSprite(ascii: string, red: number = 1, green: number = 1, blue: number = 1, alpha: number = 1): Sprite {
+        public static CreateSprite(ascii: string, red: number = 255, green: number = 255, blue: number = 255, alpha: number = 255, pixelSize: number = 1): Sprite {
             ascii = ascii.trim();
             while (ascii.indexOf(" ") !== -1) {
                 ascii = ascii.replace(" ", "");
@@ -64,10 +64,9 @@ namespace Alviss {
             for (let i = 1; i < lines.length; i++) {
                 width = Math.max(width, lines[i].length);
             }
-            let buffer = new Uint8ClampedArray(width * height * 4);
+            let buffer = new Uint8ClampedArray(width * pixelSize * height * pixelSize * 4);
             for (let j = 0; j < height; j++) {
                 for (let i = 0; i < width; i++) {
-                    let index = i + j * width;
                     let v = 0;
                     let c = lines[j][i];
                     if (c) {
@@ -76,13 +75,18 @@ namespace Alviss {
                             v = n / 8;
                         }
                     }
-                    buffer[index * 4] = red * v;
-                    buffer[index * 4 + 1] = green * v;
-                    buffer[index * 4 + 2] = blue * v;
-                    buffer[index * 4 + 3] = v === 0 ? 0 : alpha;
+                    for (let jj = 0; jj < pixelSize; jj++) {
+                        for (let ii = 0; ii < pixelSize; ii++) {
+                            let index = (i * pixelSize + ii) + (j * pixelSize + jj) * pixelSize * width;
+                            buffer[index * 4] = red * v;
+                            buffer[index * 4 + 1] = green * v;
+                            buffer[index * 4 + 2] = blue * v;
+                            buffer[index * 4 + 3] = v === 0 ? 0 : alpha;
+                        }
+                    }
                 }
             }
-            return new Sprite(new ImageData(buffer, width, height));
+            return new Sprite(new ImageData(buffer, width * pixelSize, height * pixelSize));
         }
     }
 }

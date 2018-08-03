@@ -432,8 +432,8 @@ class Tetris {
     static RunTetrisTest() {
         let canvas = document.getElementById("render-canvas-tetris");
         if (canvas instanceof HTMLCanvasElement) {
-            canvas.width = 128;
-            canvas.height = 128;
+            canvas.width = 512;
+            canvas.height = 512;
             let context = canvas.getContext("2d");
             let engine = new Alviss.Engine(context, canvas.width, canvas.height);
             let scene = new Alviss.Scene(engine);
@@ -441,15 +441,15 @@ class Tetris {
             camera.AddComponent(Alviss.Camera);
             let piece = new Alviss.GameObject(scene);
             piece.AddComponent(LPiece);
-            piece.transform.setLocalPosition(0, 60);
+            piece.transform.setLocalPosition(0, 200);
             console.log(".");
         }
     }
     static RunTetrisPhysicTest() {
         let canvas = document.getElementById("render-canvas-tetris-physic");
         if (canvas instanceof HTMLCanvasElement) {
-            canvas.width = 128;
-            canvas.height = 128;
+            canvas.width = 512;
+            canvas.height = 512;
             let context = canvas.getContext("2d");
             let engine = new Alviss.Engine(context, canvas.width, canvas.height);
             let scene = new Alviss.Scene(engine);
@@ -539,7 +539,7 @@ class LShapePart extends Alviss.MonoBehaviour {
 class Piece extends Alviss.MonoBehaviour {
     constructor() {
         super(...arguments);
-        this.speed = 8;
+        this.speed = 32;
         this.rotationSpeed = Math.PI;
     }
     Update() {
@@ -552,11 +552,11 @@ class Piece extends Alviss.MonoBehaviour {
             this.transform.Translate(-this.speed / 60, 0);
         }
         else {
-            let deltaX = this.transform.getLocalPosition().x % 6;
+            let deltaX = this.transform.getLocalPosition().x % (6 * 4);
             while (deltaX < 0) {
-                deltaX += 6;
+                deltaX += 6 * 4;
             }
-            if (deltaX > 3) {
+            if (deltaX > 3 * 4) {
                 this.transform.Translate(Math.min(this.speed / 60, deltaX), 0);
             }
             else if (deltaX > 0.01) {
@@ -600,13 +600,13 @@ class LPiece extends Piece {
         this.blocks[0].transform.parent = this.transform;
         this.blocks[1] = Block.Create(this.scene, 255, 0, 255);
         this.blocks[1].transform.parent = this.transform;
-        this.blocks[1].transform.setLocalPosition(0, -6);
+        this.blocks[1].transform.setLocalPosition(0, -6 * 4);
         this.blocks[2] = Block.Create(this.scene, 255, 0, 255);
         this.blocks[2].transform.parent = this.transform;
-        this.blocks[2].transform.setLocalPosition(0, -12);
+        this.blocks[2].transform.setLocalPosition(0, -12 * 4);
         this.blocks[2] = Block.Create(this.scene, 255, 0, 255);
         this.blocks[2].transform.parent = this.transform;
-        this.blocks[2].transform.setLocalPosition(6, 0);
+        this.blocks[2].transform.setLocalPosition(6 * 4, 0);
     }
 }
 class Block extends Alviss.MonoBehaviour {
@@ -629,7 +629,7 @@ class Block extends Alviss.MonoBehaviour {
                 886674
                 887774
                 844444
-            `, this.red, this.green, this.blue, 255);
+            `, this.red, this.green, this.blue, 255, 4);
     }
     serialize() {
         return {

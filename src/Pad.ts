@@ -30,7 +30,7 @@ module Alviss {
                 return "Space";
             }
             if (padButton === PadButton.B) {
-                return "Control";
+                return "ControlLeft";
             }
         }
     

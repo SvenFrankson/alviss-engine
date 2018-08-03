@@ -355,7 +355,7 @@ var Alviss;
                 return "Space";
             }
             if (padButton === PadButton.B) {
-                return "Control";
+                return "ControlLeft";
             }
         }
         destroy() {
@@ -1325,7 +1325,7 @@ var Alviss;
             }
             return new Alviss.Sprite(new ImageData(buffer, 2 * radius, 2 * radius));
         }
-        static CreateSprite(ascii, red = 1, green = 1, blue = 1, alpha = 1) {
+        static CreateSprite(ascii, red = 255, green = 255, blue = 255, alpha = 255, pixelSize = 1) {
             ascii = ascii.trim();
             while (ascii.indexOf(" ") !== -1) {
                 ascii = ascii.replace(" ", "");
@@ -1336,10 +1336,9 @@ var Alviss;
             for (let i = 1; i < lines.length; i++) {
                 width = Math.max(width, lines[i].length);
             }
-            let buffer = new Uint8ClampedArray(width * height * 4);
+            let buffer = new Uint8ClampedArray(width * pixelSize * height * pixelSize * 4);
             for (let j = 0; j < height; j++) {
                 for (let i = 0; i < width; i++) {
-                    let index = i + j * width;
                     let v = 0;
                     let c = lines[j][i];
                     if (c) {
@@ -1348,13 +1347,18 @@ var Alviss;
                             v = n / 8;
                         }
                     }
-                    buffer[index * 4] = red * v;
-                    buffer[index * 4 + 1] = green * v;
-                    buffer[index * 4 + 2] = blue * v;
-                    buffer[index * 4 + 3] = v === 0 ? 0 : alpha;
+                    for (let jj = 0; jj < pixelSize; jj++) {
+                        for (let ii = 0; ii < pixelSize; ii++) {
+                            let index = (i * pixelSize + ii) + (j * pixelSize + jj) * pixelSize * width;
+                            buffer[index * 4] = red * v;
+                            buffer[index * 4 + 1] = green * v;
+                            buffer[index * 4 + 2] = blue * v;
+                            buffer[index * 4 + 3] = v === 0 ? 0 : alpha;
+                        }
+                    }
                 }
             }
-            return new Alviss.Sprite(new ImageData(buffer, width, height));
+            return new Alviss.Sprite(new ImageData(buffer, width * pixelSize, height * pixelSize));
         }
     }
     Alviss.SpriteTools = SpriteTools;
