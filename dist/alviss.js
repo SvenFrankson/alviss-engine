@@ -296,12 +296,12 @@ var Alviss;
             this.keyPressed = new Alviss.List();
             this.keyUped = new Alviss.List();
             this._keyDown = (event) => {
-                this.keyDowned.push(event.key);
-                this.keyPressed.push(event.key);
+                this.keyDowned.push(event.code);
+                this.keyPressed.push(event.code);
             };
             this._keyUp = (event) => {
-                this.keyUped.push(event.key);
-                this.keyDowned.remove(event.key);
+                this.keyUped.push(event.code);
+                this.keyDowned.remove(event.code);
             };
             window.addEventListener("keydown", this._keyDown);
             window.addEventListener("keyup", this._keyUp);
@@ -351,6 +351,12 @@ var Alviss;
             if (padButton === PadButton.Right) {
                 return "ArrowRight";
             }
+            if (padButton === PadButton.A) {
+                return "Space";
+            }
+            if (padButton === PadButton.B) {
+                return "Control";
+            }
         }
         destroy() {
         }
@@ -382,7 +388,7 @@ var Alviss;
             this.rigidBodies = new Alviss.List();
             this.engine.scenes.push(this);
             this.physicEngine = Matter.Engine.create();
-            this.physicWorld.gravity.y = -1;
+            this.physicWorld.gravity.y = 0;
         }
         get physicWorld() {
             return this.physicEngine.world;
@@ -391,6 +397,11 @@ var Alviss;
             this.engine.scenes.remove(this);
         }
         updatePhysic() {
+            this.objects.forEach((g) => {
+                g.monoBehaviours.forEach((m) => {
+                    m._fixedUpdate();
+                });
+            });
             Matter.Engine.update(this.physicEngine, 1000 / 60);
             this.rigidBodies.forEach((r) => {
                 r._update();
@@ -844,6 +855,13 @@ var Alviss;
         }
         Update() { }
         ;
+        _fixedUpdate() {
+            if (this._started) {
+                this.FixedUpdate();
+            }
+        }
+        FixedUpdate() { }
+        ;
         OnCollisionEnter(collision) { }
         ;
         OnCollisionStay(collision) { }
@@ -905,6 +923,11 @@ var Alviss;
             if (this.gameObject._body) {
                 this.transform.setWorldPosition(this.gameObject._body.position.x, this.gameObject._body.position.y);
                 this.transform.worldAngle = this.gameObject._body.angle;
+            }
+        }
+        AddForce(force) {
+            if (this.gameObject._body) {
+                Matter.Body.applyForce(this.gameObject._body, Alviss.Vector2.Zero(), force);
             }
         }
     }
@@ -1166,6 +1189,9 @@ var Alviss;
             }
             this._localPosition.addInPlace(vector);
             this.flagWorldPosDirty();
+        }
+        Rotate(a) {
+            this.localAngle += a;
         }
     }
     Alviss.Transform = Transform;

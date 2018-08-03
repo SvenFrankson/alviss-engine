@@ -151,5 +151,9 @@ module Alviss {
             this._localPosition.addInPlace(vector);
             this.flagWorldPosDirty();
         }
+
+        public Rotate(a: number): void {
+            this.localAngle += a;
+        }
     }
 }

@@ -65,6 +65,9 @@ class Main {
         Main.RunPhysicTest();
         Main.RunTransformTest();
         Main.RunInstantiateTest();
+        Main.RunPixelTest();
+        Tetris.RunTetrisTest();
+        Tetris.RunTetrisPhysicTest();
     }
     static RunSnake() {
         let canvas = document.getElementById("render-canvas-snake");
@@ -89,14 +92,14 @@ class Main {
             let scene = new Alviss.Scene(engine);
             let g = new Alviss.GameObject(scene);
             g.AddComponent(Alviss.SpriteRenderer);
-            g.spriteRenderer.sprite = Alviss.SpriteTools.CreateDiscSprite(16, 0, 0, 256, 256);
+            g.spriteRenderer.sprite = Alviss.SpriteTools.CreateDiscSprite(16, 0, 0, 255, 255);
             g.transform.setWorldPosition(16, 16);
             g.AddComponent(Alviss.DiscCollider);
             g.GetComponent(Alviss.DiscCollider).radius = 8;
             g.AddComponent(CollisionTestMBH);
             let o = new Alviss.GameObject(scene);
             o.AddComponent(Alviss.SpriteRenderer);
-            o.spriteRenderer.sprite = Alviss.SpriteTools.CreateDiscSprite(16, 256, 0, 0, 256);
+            o.spriteRenderer.sprite = Alviss.SpriteTools.CreateDiscSprite(16, 255, 0, 0, 255);
             o.transform.setWorldPosition(64, 64);
             o.AddComponent(Alviss.DiscCollider);
             o.GetComponent(Alviss.DiscCollider).radius = 8;
@@ -105,8 +108,8 @@ class Main {
     static RunCollisionAutoTest() {
         let canvas = document.getElementById("render-canvas-collision-auto");
         if (canvas instanceof HTMLCanvasElement) {
-            canvas.width = 256;
-            canvas.height = 256;
+            canvas.width = 255;
+            canvas.height = 255;
             let context = canvas.getContext("2d");
             let engine = new Alviss.Engine(context, canvas.width, canvas.height);
             let scene = new Alviss.Scene(engine);
@@ -132,26 +135,34 @@ class Main {
             let scene = new Alviss.Scene(engine);
             let camera = new Alviss.GameObject(scene);
             camera.AddComponent(Alviss.Camera);
-            camera.AddComponent(MoveAroundMBH);
+            let player = new Alviss.GameObject(scene);
+            player.transform.setWorldPosition((Math.random() - 0.5) * engine.width, (Math.random() - 0.5) * engine.height);
+            player.AddComponent(Alviss.SpriteRenderer);
+            player.spriteRenderer.sprite = Alviss.SpriteTools.CreateDiscSprite(8, 0, 255, 0, 255);
+            player.AddComponent(Alviss.DiscCollider);
+            player.GetComponent(Alviss.DiscCollider).radius = 8;
+            player.AddComponent(Alviss.RigidBody);
+            player.AddComponent(PlayerControl);
             for (let i = 0; i < 5; i++) {
                 let ball = new Alviss.GameObject(scene);
-                ball.transform.setWorldPosition((Math.random() - 0.5) * engine.width, (Math.random() - 0) * engine.height);
+                ball.transform.setWorldPosition((Math.random() - 0.5) * engine.width, (Math.random() - 0.5) * engine.height);
                 ball.AddComponent(Alviss.SpriteRenderer);
-                ball.spriteRenderer.sprite = new Alviss.Sprite("./face.png");
+                ball.spriteRenderer.sprite = Alviss.SpriteTools.CreateDiscSprite(8, 0, 0, 255, 255);
                 ball.AddComponent(Alviss.DiscCollider);
                 ball.AddComponent(Alviss.RigidBody);
             }
             for (let i = 0; i < 5; i++) {
                 let cube = new Alviss.GameObject(scene);
-                cube.transform.setWorldPosition((Math.random() - 0.5) * engine.width, (Math.random() - 0) * engine.height);
+                cube.transform.setWorldPosition((Math.random() - 0.5) * engine.width, (Math.random() - 0.5) * engine.height);
                 cube.AddComponent(Alviss.SpriteRenderer);
-                cube.spriteRenderer.sprite = Alviss.SpriteTools.CreateRectangleSprite(32, 32, 256, 0, 0, 256);
+                cube.spriteRenderer.sprite = Alviss.SpriteTools.CreateRectangleSprite(32, 32, 255, 0, 0, 255);
                 cube.AddComponent(Alviss.RectangleCollider);
                 cube.AddComponent(Alviss.RigidBody);
             }
             let ground = new Alviss.GameObject(scene);
+            ground.transform.setLocalPosition(0, -engine.height * 0.5);
             ground.AddComponent(Alviss.SpriteRenderer);
-            ground.spriteRenderer.sprite = Alviss.SpriteTools.CreateRectangleSprite(engine.width, 16, 256, 256, 0, 256);
+            ground.spriteRenderer.sprite = Alviss.SpriteTools.CreateRectangleSprite(engine.width, 16, 255, 255, 0, 255);
             ground.AddComponent(Alviss.RectangleCollider);
             ground.GetComponent(Alviss.RectangleCollider).width = engine.width;
             ground.GetComponent(Alviss.RectangleCollider).height = 16;
@@ -160,8 +171,8 @@ class Main {
     static RunTransformTest() {
         let canvas = document.getElementById("render-canvas-transform");
         if (canvas instanceof HTMLCanvasElement) {
-            canvas.width = 256;
-            canvas.height = 256;
+            canvas.width = 255;
+            canvas.height = 255;
             let context = canvas.getContext("2d");
             let engine = new Alviss.Engine(context, canvas.width, canvas.height);
             let scene = new Alviss.Scene(engine);
@@ -169,27 +180,27 @@ class Main {
             camera.AddComponent(Alviss.Camera);
             let movingUpNDown = new Alviss.GameObject(scene);
             movingUpNDown.AddComponent(Alviss.SpriteRenderer);
-            movingUpNDown.spriteRenderer.sprite = Alviss.SpriteTools.CreateRectangleSprite(32, 32, 256, 256, 0, 256);
+            movingUpNDown.spriteRenderer.sprite = Alviss.SpriteTools.CreateRectangleSprite(32, 32, 255, 255, 0, 255);
             movingUpNDown.AddComponent(MovingUpNDown);
             let lock1 = new Alviss.GameObject(scene);
             lock1.AddComponent(Alviss.SpriteRenderer);
-            lock1.spriteRenderer.sprite = Alviss.SpriteTools.CreateRectangleSprite(16, 16, 256, 0, 0, 256);
+            lock1.spriteRenderer.sprite = Alviss.SpriteTools.CreateRectangleSprite(16, 16, 255, 0, 0, 255);
             lock1.AddComponent(ForcedInPlaceMBH);
             lock1.GetComponent(ForcedInPlaceMBH).lockedWorldPosition = new Alviss.Vector2(-32, 32);
             lock1.transform.parent = movingUpNDown.transform;
             let rotating = new Alviss.GameObject(scene);
             rotating.AddComponent(Alviss.SpriteRenderer);
-            rotating.spriteRenderer.sprite = Alviss.SpriteTools.CreateRectangleSprite(64, 16, 256, 0, 256, 256);
+            rotating.spriteRenderer.sprite = Alviss.SpriteTools.CreateRectangleSprite(64, 16, 255, 0, 255, 255);
             rotating.AddComponent(Rotating);
             rotating.transform.setWorldPosition(64, 32);
             let lock2 = new Alviss.GameObject(scene);
             lock2.AddComponent(Alviss.SpriteRenderer);
-            lock2.spriteRenderer.sprite = Alviss.SpriteTools.CreateRectangleSprite(16, 16, 256, 0, 0, 256);
+            lock2.spriteRenderer.sprite = Alviss.SpriteTools.CreateRectangleSprite(16, 16, 255, 0, 0, 255);
             lock2.AddComponent(ForcedInPlaceMBH);
             lock2.GetComponent(ForcedInPlaceMBH).lockedWorldPosition = new Alviss.Vector2(-32, -32);
             lock2.transform.parent = rotating.transform;
             let clone = Alviss.GameObject.Instantiate(rotating);
-            clone.spriteRenderer.sprite = Alviss.SpriteTools.CreateRectangleSprite(64, 16, 256, 0, 256, 256);
+            clone.spriteRenderer.sprite = Alviss.SpriteTools.CreateRectangleSprite(64, 16, 255, 0, 255, 255);
             clone.transform.setWorldPosition(-64, 32);
         }
     }
@@ -205,7 +216,7 @@ class Main {
             camera.AddComponent(Alviss.Camera);
             let prefab = new Alviss.GameObject(engine);
             prefab.AddComponent(Alviss.SpriteRenderer);
-            prefab.spriteRenderer.sprite = Alviss.SpriteTools.CreateDiscSprite(8, 0, 256, 0, 256);
+            prefab.spriteRenderer.sprite = Alviss.SpriteTools.CreateDiscSprite(8, 0, 255, 0, 255);
             prefab.AddComponent(Alviss.DiscCollider);
             prefab.GetComponent(Alviss.DiscCollider).radius = 8;
             prefab.AddComponent(Alviss.RigidBody);
@@ -213,7 +224,7 @@ class Main {
             let spawner = new Alviss.GameObject(scene);
             spawner.transform.worldAngle = Math.PI / 8;
             spawner.AddComponent(Alviss.SpriteRenderer);
-            spawner.spriteRenderer.sprite = Alviss.SpriteTools.CreateRectangleSprite(32, 8, 256, 0, 0, 256);
+            spawner.spriteRenderer.sprite = Alviss.SpriteTools.CreateRectangleSprite(32, 8, 255, 0, 0, 255);
             spawner.AddComponent(MoveAroundMBH);
             spawner.AddComponent(SpawnMBH);
             spawner.GetComponent(SpawnMBH).template = prefab;
@@ -224,11 +235,26 @@ class Main {
                 cube.AddComponent(Alviss.SpriteRenderer);
                 let h = Math.floor(Math.random() * 96 + 32);
                 let w = Math.floor(Math.random() * 24 + 8);
-                cube.spriteRenderer.sprite = Alviss.SpriteTools.CreateRectangleSprite(w, h, 0, 0, 256, 256);
+                cube.spriteRenderer.sprite = Alviss.SpriteTools.CreateRectangleSprite(w, h, 0, 0, 255, 255);
                 cube.AddComponent(Alviss.RectangleCollider);
                 cube.GetComponent(Alviss.RectangleCollider).width = w;
                 cube.GetComponent(Alviss.RectangleCollider).height = h;
             }
+        }
+    }
+    static RunPixelTest() {
+        let canvas = document.getElementById("render-canvas-pixel");
+        if (canvas instanceof HTMLCanvasElement) {
+            canvas.width = 32;
+            canvas.height = 32;
+            let context = canvas.getContext("2d");
+            let engine = new Alviss.Engine(context, canvas.width, canvas.height);
+            let scene = new Alviss.Scene(engine);
+            let camera = new Alviss.GameObject(scene);
+            camera.AddComponent(Alviss.Camera);
+            let spawner = new Alviss.GameObject(scene);
+            spawner.AddComponent(Alviss.SpriteRenderer);
+            spawner.spriteRenderer.sprite = Alviss.SpriteTools.CreateRectangleSprite(1, 1, 255, 255, 0, 255);
         }
     }
 }
@@ -295,6 +321,22 @@ class ForcedInPlaceMBH extends Alviss.MonoBehaviour {
     }
     Update() {
         this.transform.setWorldPosition(this.lockedWorldPosition);
+    }
+}
+class PlayerControl extends Alviss.MonoBehaviour {
+    FixedUpdate() {
+        if (this.engine.input.getPadButtonDown(Alviss.PadButton.Up)) {
+            this.gameObject.rigidBody.AddForce(new Alviss.Vector2(0, 0.0001));
+        }
+        if (this.engine.input.getPadButtonDown(Alviss.PadButton.Down)) {
+            this.gameObject.rigidBody.AddForce(new Alviss.Vector2(0, -0.0001));
+        }
+        if (this.engine.input.getPadButtonDown(Alviss.PadButton.Right)) {
+            this.gameObject.rigidBody.AddForce(new Alviss.Vector2(0.0001, 0));
+        }
+        if (this.engine.input.getPadButtonDown(Alviss.PadButton.Left)) {
+            this.gameObject.rigidBody.AddForce(new Alviss.Vector2(-0.0001, 0));
+        }
     }
 }
 class Snake extends Alviss.MonoBehaviour {
@@ -383,6 +425,230 @@ class TestMBH1 extends Alviss.MonoBehaviour {
         }
         if (this.engine.input.getPadButtonDown(Alviss.PadButton.Left)) {
             this.gameObject.transform.Translate(-1, 0);
+        }
+    }
+}
+class Tetris {
+    static RunTetrisTest() {
+        let canvas = document.getElementById("render-canvas-tetris");
+        if (canvas instanceof HTMLCanvasElement) {
+            canvas.width = 128;
+            canvas.height = 128;
+            let context = canvas.getContext("2d");
+            let engine = new Alviss.Engine(context, canvas.width, canvas.height);
+            let scene = new Alviss.Scene(engine);
+            let camera = new Alviss.GameObject(scene);
+            camera.AddComponent(Alviss.Camera);
+            let piece = new Alviss.GameObject(scene);
+            piece.AddComponent(LPiece);
+            piece.transform.setLocalPosition(0, 60);
+            console.log(".");
+        }
+    }
+    static RunTetrisPhysicTest() {
+        let canvas = document.getElementById("render-canvas-tetris-physic");
+        if (canvas instanceof HTMLCanvasElement) {
+            canvas.width = 128;
+            canvas.height = 128;
+            let context = canvas.getContext("2d");
+            let engine = new Alviss.Engine(context, canvas.width, canvas.height);
+            let scene = new Alviss.Scene(engine);
+            let camera = new Alviss.GameObject(scene);
+            camera.AddComponent(Alviss.Camera);
+            let floor = new Alviss.GameObject(scene);
+            floor.AddComponent(Alviss.SpriteRenderer);
+            floor.spriteRenderer.sprite = Alviss.SpriteTools.CreateRectangleSprite(engine.width, 8, 0, 255, 0, 255);
+            floor.AddComponent(Alviss.RectangleCollider);
+            floor.GetComponent(Alviss.RectangleCollider).width = engine.width;
+            floor.GetComponent(Alviss.RectangleCollider).height = 8;
+            floor.transform.setLocalPosition(0, -engine.height * 0.5 + 8);
+            let lShape = new Alviss.GameObject(scene);
+            lShape.transform.localAngle = Math.random() * Math.PI * 2;
+            let lShapeParts = [];
+            lShapeParts[0] = new Alviss.GameObject(scene);
+            lShapeParts[0].transform.parent = lShape.transform;
+            lShapeParts[0].AddComponent(Alviss.SpriteRenderer);
+            lShapeParts[0].spriteRenderer.sprite = Alviss.SpriteTools.CreateRectangleSprite(8, 8, 200, 50, 120, 256);
+            lShapeParts[0].AddComponent(Alviss.RectangleCollider);
+            lShapeParts[0].GetComponent(Alviss.RectangleCollider).width = 8;
+            lShapeParts[0].GetComponent(Alviss.RectangleCollider).height = 8;
+            lShapeParts[0].AddComponent(Alviss.RigidBody);
+            lShapeParts[0].transform.setLocalPosition(0, 32);
+            lShapeParts[1] = new Alviss.GameObject(scene);
+            lShapeParts[1].transform.parent = lShape.transform;
+            lShapeParts[1].AddComponent(Alviss.SpriteRenderer);
+            lShapeParts[1].spriteRenderer.sprite = Alviss.SpriteTools.CreateRectangleSprite(8, 8, 200, 50, 120, 256);
+            lShapeParts[1].AddComponent(Alviss.RectangleCollider);
+            lShapeParts[1].GetComponent(Alviss.RectangleCollider).width = 8;
+            lShapeParts[1].GetComponent(Alviss.RectangleCollider).height = 8;
+            lShapeParts[1].AddComponent(Alviss.RigidBody);
+            lShapeParts[1].transform.setLocalPosition(8, 32);
+            /*
+            lShapeParts[2] = new Alviss.GameObject(scene);
+            lShapeParts[2].transform.parent = lShape.transform;
+            lShapeParts[2].AddComponent(Alviss.SpriteRenderer);
+            lShapeParts[2].spriteRenderer.sprite = Alviss.SpriteTools.CreateRectangleSprite(8, 8, 200, 50, 120, 256);
+            lShapeParts[2].AddComponent(Alviss.RectangleCollider);
+            lShapeParts[2].GetComponent(Alviss.RectangleCollider).width = 8;
+            lShapeParts[2].GetComponent(Alviss.RectangleCollider).height = 8;
+            lShapeParts[2].AddComponent(Alviss.RigidBody);
+            lShapeParts[2].transform.setLocalPosition(16, 32);
+
+            lShapeParts[3] = new Alviss.GameObject(scene);
+            lShapeParts[3].transform.parent = lShape.transform;
+            lShapeParts[3].AddComponent(Alviss.SpriteRenderer);
+            lShapeParts[3].spriteRenderer.sprite = Alviss.SpriteTools.CreateRectangleSprite(8, 8, 200, 50, 120, 256);
+            lShapeParts[3].AddComponent(Alviss.RectangleCollider);
+            lShapeParts[3].GetComponent(Alviss.RectangleCollider).width = 8;
+            lShapeParts[3].GetComponent(Alviss.RectangleCollider).height = 8;
+            lShapeParts[3].AddComponent(Alviss.RigidBody);
+            lShapeParts[3].transform.setLocalPosition(16, 40);
+            */
+            for (let i = 0; i < lShapeParts.length; i++) {
+                let part = lShapeParts[i];
+                part.AddComponent(LShapePart);
+            }
+            for (let i = 0; i < lShapeParts.length; i++) {
+                let part = lShapeParts[i];
+                for (let j = 0; j < lShapeParts.length; j++) {
+                    if (i !== j) {
+                        let other = lShapeParts[j].GetComponent(LShapePart);
+                        part.GetComponent(LShapePart).others.push(other);
+                        part.GetComponent(LShapePart).originDistances.push(Alviss.Vector2.Distance(part.transform.getWorldPosition(), other.transform.getWorldPosition()));
+                        console.log(" i " + i + " j " + j + " " +
+                            Alviss.Vector2.Distance(part.transform.getWorldPosition(), other.transform.getWorldPosition()));
+                    }
+                }
+            }
+        }
+    }
+}
+class LShapePart extends Alviss.MonoBehaviour {
+    constructor() {
+        super(...arguments);
+        this.others = [];
+        this.originDistances = [];
+    }
+    FixedUpdate() {
+        for (let i = 0; i < this.others.length; i++) {
+            let other = this.others[i];
+            this.gameObject.rigidBody.AddForce(other.transform.getWorldPosition().subtract(this.transform.getWorldPosition()).normalizeInPlace().scaleInPlace((Alviss.Vector2.Distance(other.transform.getWorldPosition(), this.transform.getWorldPosition()) - this.originDistances[i] * 1.5) * 0.0001));
+        }
+    }
+}
+class Piece extends Alviss.MonoBehaviour {
+    constructor() {
+        super(...arguments);
+        this.speed = 8;
+        this.rotationSpeed = Math.PI;
+    }
+    Update() {
+        let xAligned = false;
+        this.transform.Translate(0, -this.speed / 60);
+        if (this.engine.input.getPadButtonDown(Alviss.PadButton.Right)) {
+            this.transform.Translate(this.speed / 60, 0);
+        }
+        else if (this.engine.input.getPadButtonDown(Alviss.PadButton.Left)) {
+            this.transform.Translate(-this.speed / 60, 0);
+        }
+        else {
+            let deltaX = this.transform.getLocalPosition().x % 6;
+            while (deltaX < 0) {
+                deltaX += 6;
+            }
+            if (deltaX > 3) {
+                this.transform.Translate(Math.min(this.speed / 60, deltaX), 0);
+            }
+            else if (deltaX > 0.01) {
+                this.transform.Translate(-Math.min(this.speed / 60, deltaX), 0);
+            }
+            else {
+                xAligned = true;
+            }
+        }
+        let aAligned = false;
+        if (this.engine.input.getPadButtonDown(Alviss.PadButton.A)) {
+            this.transform.Rotate(this.rotationSpeed / 60);
+        }
+        else if (this.engine.input.getPadButtonDown(Alviss.PadButton.B)) {
+            this.transform.Rotate(-this.rotationSpeed / 60);
+        }
+        else {
+            let deltaA = this.transform.localAngle % (Math.PI * 0.5);
+            while (deltaA < 0) {
+                deltaA += Math.PI * 0.5;
+            }
+            if (deltaA > Math.PI * 0.25) {
+                this.transform.Rotate(Math.min(this.rotationSpeed / 60, deltaA));
+            }
+            else if (deltaA > Math.PI * 0.25 * 0.01) {
+                this.transform.Rotate(-Math.min(this.rotationSpeed / 60, deltaA));
+            }
+            else {
+                aAligned = true;
+            }
+        }
+    }
+}
+class LPiece extends Piece {
+    constructor() {
+        super(...arguments);
+        this.blocks = [];
+    }
+    Start() {
+        this.blocks[0] = Block.Create(this.scene, 255, 0, 255);
+        this.blocks[0].transform.parent = this.transform;
+        this.blocks[1] = Block.Create(this.scene, 255, 0, 255);
+        this.blocks[1].transform.parent = this.transform;
+        this.blocks[1].transform.setLocalPosition(0, -6);
+        this.blocks[2] = Block.Create(this.scene, 255, 0, 255);
+        this.blocks[2].transform.parent = this.transform;
+        this.blocks[2].transform.setLocalPosition(0, -12);
+        this.blocks[2] = Block.Create(this.scene, 255, 0, 255);
+        this.blocks[2].transform.parent = this.transform;
+        this.blocks[2].transform.setLocalPosition(6, 0);
+    }
+}
+class Block extends Alviss.MonoBehaviour {
+    static Create(scene, red, green, blue) {
+        let g = new Alviss.GameObject(scene);
+        let block = g.AddComponent(Block);
+        block.red = red;
+        block.green = green;
+        block.blue = blue;
+        return block;
+    }
+    Start() {
+        if (!this.gameObject.spriteRenderer) {
+            this.gameObject.AddComponent(Alviss.SpriteRenderer);
+        }
+        this.gameObject.spriteRenderer.sprite = Alviss.SpriteTools.CreateSprite(`
+                888888
+                888884
+                886674
+                886674
+                887774
+                844444
+            `, this.red, this.green, this.blue, 255);
+    }
+    serialize() {
+        return {
+            r: this.red,
+            g: this.green,
+            b: this.blue
+        };
+    }
+    deserialize(data) {
+        if (data) {
+            if (isFinite(data.r)) {
+                this.red = data.r;
+            }
+            if (isFinite(data.g)) {
+                this.green = data.g;
+            }
+            if (isFinite(data.b)) {
+                this.blue = data.b;
+            }
         }
     }
 }

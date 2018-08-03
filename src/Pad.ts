@@ -26,6 +26,12 @@ module Alviss {
             if (padButton === PadButton.Right) {
                 return "ArrowRight";
             }
+            if (padButton === PadButton.A) {
+                return "Space";
+            }
+            if (padButton === PadButton.B) {
+                return "Control";
+            }
         }
     
         public padDowned: List<PadButton> = new List<PadButton>();

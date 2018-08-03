@@ -245,6 +245,8 @@ declare module Alviss {
         Start(): void;
         _update(): void;
         Update(): void;
+        _fixedUpdate(): void;
+        FixedUpdate(): void;
         OnCollisionEnter(collision: Collision): void;
         OnCollisionStay(collision: Collision): void;
         OnCollisionExit(collision: Collision): void;
@@ -259,6 +261,7 @@ declare module Alviss {
         destroyImmediate(): void;
         private _createBody();
         _update(): void;
+        AddForce(force: Vector2): void;
     }
 }
 declare module Alviss {
@@ -314,6 +317,7 @@ declare module Alviss {
         deserialize(data: any): void;
         Translate(v: Vector2): void;
         Translate(x: number, y: number): void;
+        Rotate(a: number): void;
     }
 }
 declare namespace Alviss {

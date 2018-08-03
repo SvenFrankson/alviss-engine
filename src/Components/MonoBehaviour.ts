@@ -41,6 +41,14 @@ module Alviss {
 
         public Update(): void {};
 
+        public _fixedUpdate(): void {
+            if (this._started) {
+                this.FixedUpdate();
+            }
+        }
+
+        public FixedUpdate(): void {};
+
         public OnCollisionEnter(collision: Collision): void {};
 
         public OnCollisionStay(collision: Collision): void {};

@@ -23,13 +23,13 @@ module Alviss {
         }
 
         private _keyDown = (event: KeyboardEvent) => {
-            this.keyDowned.push(event.key);
-            this.keyPressed.push(event.key);
+            this.keyDowned.push(event.code);
+            this.keyPressed.push(event.code);
         }
 
         private _keyUp = (event: KeyboardEvent) => {
-            this.keyUped.push(event.key);
-            this.keyDowned.remove(event.key);
+            this.keyUped.push(event.code);
+            this.keyDowned.remove(event.code);
         }
     }
 }

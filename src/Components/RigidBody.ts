@@ -58,5 +58,11 @@ module Alviss {
                 this.transform.worldAngle = this.gameObject._body.angle;
             }
         }
+
+        public AddForce(force: Vector2): void {
+            if (this.gameObject._body) {
+                Matter.Body.applyForce(this.gameObject._body, Vector2.Zero(), force);
+            }
+        }
     }
 }

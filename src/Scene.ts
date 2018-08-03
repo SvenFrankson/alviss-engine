@@ -15,7 +15,7 @@ module Alviss {
         constructor(public engine: Engine) {
             this.engine.scenes.push(this);
             this.physicEngine = Matter.Engine.create();
-            this.physicWorld.gravity.y = -1;
+            this.physicWorld.gravity.y = 0;
         }
 
         public destroy(): void {
@@ -23,6 +23,15 @@ module Alviss {
         }
 
         public updatePhysic(): void {
+            this.objects.forEach(
+                (g) => {
+                    g.monoBehaviours.forEach(
+                        (m) => {
+                            m._fixedUpdate();
+                        }
+                    )
+                }
+            );
             Matter.Engine.update(this.physicEngine, 1000 / 60);
             this.rigidBodies.forEach(
                 (r) => {
