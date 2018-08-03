@@ -18,6 +18,7 @@ declare module Alviss {
         static Instantiate(o: Object, position: Vector2, angle: number): Object;
         static Instantiate(o: Object, position: Vector2, angle: number, parent: Transform): Object;
         destroy(): void;
+        destroyImmediate(): void;
         instantiate(): Object;
         instantiate(parent: Transform): Object;
         instantiate(parent: Transform, instantiateInWorldSpace: boolean): Object;
@@ -35,6 +36,7 @@ declare module Alviss {
         readonly isInstance: boolean;
         constructor(gameObject: GameObject);
         destroy(): void;
+        destroyImmediate(): void;
         instantiate(a?: Transform | Vector2, b?: boolean | number, parent?: Transform): Object;
         serialize(): any;
         deserialize(data: any): void;
@@ -71,6 +73,7 @@ declare module Alviss {
         constructor(scene: Scene);
         constructor(engine: Engine);
         destroy(): void;
+        destroyImmediate(): void;
         instantiate(a?: Transform | Vector2, b?: boolean | number, parent?: Transform): Object;
         AddComponent<T extends Component>(TConstructor: new (gameObject: GameObject) => T): T;
         GetComponent<T extends Component>(TConstructor: new (gameObject: GameObject) => T): T;
@@ -135,6 +138,7 @@ declare module Alviss {
         private physicEngine;
         readonly physicWorld: Matter.World;
         objects: List<GameObject>;
+        bin: List<Object>;
         cameras: List<Camera>;
         colliders: List<Collider>;
         rigidBodies: List<RigidBody>;
@@ -203,7 +207,7 @@ declare module Alviss {
         width: number;
         height: number;
         constructor(gameObject: GameObject);
-        destroy(): void;
+        destroyImmediate(): void;
         serialize(): any;
         deserialize(data: any): void;
     }
@@ -211,7 +215,7 @@ declare module Alviss {
 declare module Alviss {
     class Collider extends Component {
         constructor(gameObject: GameObject);
-        destroy(): void;
+        destroyImmediate(): void;
         intersects(other: Collider): Collision;
         private _createBody();
         private _lastCollisions;
@@ -236,7 +240,7 @@ declare module Alviss {
         readonly scene: Scene;
         readonly engine: Engine;
         constructor(gameObject: GameObject);
-        destroy(): void;
+        destroyImmediate(): void;
         private _started;
         Start(): void;
         _update(): void;
@@ -252,7 +256,7 @@ declare module Alviss {
         private _mass;
         mass: number;
         constructor(gameObject: GameObject);
-        destroy(): void;
+        destroyImmediate(): void;
         private _createBody();
         _update(): void;
     }
@@ -261,7 +265,7 @@ declare module Alviss {
     class SpriteRenderer extends Component {
         sprite: Sprite;
         constructor(gameObject: GameObject);
-        destroy(): void;
+        destroyImmediate(): void;
         serialize(): any;
         deserialize(data: any): void;
         private _screenPosition;
@@ -305,7 +309,7 @@ declare module Alviss {
         children: List<Transform>;
         flagWorldPosDirty(): void;
         constructor(gameObject: GameObject);
-        destroy(): void;
+        destroyImmediate(): void;
         serialize(): any;
         deserialize(data: any): void;
         Translate(v: Vector2): void;

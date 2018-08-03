@@ -114,7 +114,8 @@ module Alviss {
             gameObject.transform = this;
         }
 
-        public destroy(): void {
+        public destroyImmediate(): void {
+            super.destroyImmediate();
             this.gameObject.transform = undefined;
         }
 

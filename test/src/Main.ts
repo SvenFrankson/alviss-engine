@@ -232,7 +232,9 @@ class SpawnedMBH extends Alviss.MonoBehaviour {
 
     private _k: number = 0;
     public Update(): void {
-        
+        if (this._k++ > 300) {
+            this.gameObject.destroy();
+        }
     }
 }
 

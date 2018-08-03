@@ -29,6 +29,15 @@ module Alviss {
         }
 
         public destroy(): void {
+            if (this.isInstance) {
+                this.scene.bin.push(this);
+            }
+            else if (this.isPrefab) {
+                this.destroyImmediate();
+            }
+        }
+
+        public destroyImmediate(): void {
             this.gameObject._components.remove(this);
         }
 

@@ -23,8 +23,8 @@ module Alviss {
             }
         }
 
-        public destroy(): void {
-            super.destroy();
+        public destroyImmediate(): void {
+            super.destroyImmediate();
             this.gameObject.rigidBody = undefined;
             if (this.isInstance) {
                 this.scene.rigidBodies.remove(this);

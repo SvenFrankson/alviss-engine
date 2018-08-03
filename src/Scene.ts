@@ -7,6 +7,7 @@ module Alviss {
             return this.physicEngine.world;
         }
         public objects: List<GameObject> = new List<GameObject>();
+        public bin: List<Object> = new List<Object>();
         public cameras: List<Camera> = new List<Camera>();
         public colliders: List<Collider> = new List<Collider>();
         public rigidBodies: List<RigidBody> = new List<RigidBody>();
@@ -59,6 +60,9 @@ module Alviss {
                     )
                 }
             );
+            while (this.bin.length > 0) {
+                this.bin.pop_last().destroyImmediate();
+            }
         }
 
         public render(): void {

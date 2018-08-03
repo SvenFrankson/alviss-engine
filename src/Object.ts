@@ -26,7 +26,6 @@ module Alviss {
             o.destroy();
         }
 
-
         public static Instantiate(o: Object): Object;
         public static Instantiate(o: Object, parent: Transform): Object;
         public static Instantiate(o: Object, parent: Transform, instantiateInWorldSpace: boolean): Object;
@@ -45,6 +44,8 @@ module Alviss {
         }
 
         public destroy(): void {}
+
+        public destroyImmediate(): void {}
 
         public instantiate(): Object;
         public instantiate(parent: Transform): Object;

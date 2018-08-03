@@ -263,6 +263,9 @@ class SpawnedMBH extends Alviss.MonoBehaviour {
         this._k = 0;
     }
     Update() {
+        if (this._k++ > 300) {
+            this.gameObject.destroy();
+        }
     }
 }
 class MovingUpNDown extends Alviss.MonoBehaviour {

@@ -44,6 +44,7 @@ var Alviss;
             }
         }
         destroy() { }
+        destroyImmediate() { }
         instantiate(a, b, parent) {
             return new Object();
         }
@@ -76,6 +77,14 @@ var Alviss;
             return this.gameObject.isInstance;
         }
         destroy() {
+            if (this.isInstance) {
+                this.scene.bin.push(this);
+            }
+            else if (this.isPrefab) {
+                this.destroyImmediate();
+            }
+        }
+        destroyImmediate() {
             this.gameObject._components.remove(this);
         }
         instantiate(a, b, parent) {
@@ -156,8 +165,19 @@ var Alviss;
             return this.scene !== undefined;
         }
         destroy() {
+            if (this.isInstance) {
+                this.scene.bin.push(this);
+            }
+            else if (this.isPrefab) {
+                this.destroyImmediate();
+            }
+        }
+        destroyImmediate() {
+            if (this._body) {
+                Matter.Composite.remove(this.scene.physicWorld, this._body);
+            }
             while (this._components.length > 0) {
-                this._components.get(0).destroy();
+                this._components.get(0).destroyImmediate();
             }
             if (this.isInstance) {
                 this.scene.objects.remove(this);
@@ -356,6 +376,7 @@ var Alviss;
         constructor(engine) {
             this.engine = engine;
             this.objects = new Alviss.List();
+            this.bin = new Alviss.List();
             this.cameras = new Alviss.List();
             this.colliders = new Alviss.List();
             this.rigidBodies = new Alviss.List();
@@ -394,6 +415,9 @@ var Alviss;
                     m._update();
                 });
             });
+            while (this.bin.length > 0) {
+                this.bin.pop_last().destroyImmediate();
+            }
         }
         render() {
             this.objects.sort((g1, g2) => { return g1.transform.depth - g2.transform.depth; });
@@ -631,8 +655,8 @@ var Alviss;
                 this.scene.cameras.push(this);
             }
         }
-        destroy() {
-            super.destroy();
+        destroyImmediate() {
+            super.destroyImmediate();
             if (this.isInstance) {
                 this.scene.cameras.remove(this);
             }
@@ -668,8 +692,8 @@ var Alviss;
                 this.scene.colliders.push(this);
             }
         }
-        destroy() {
-            super.destroy();
+        destroyImmediate() {
+            super.destroyImmediate();
             if (this.isInstance) {
                 this.scene.colliders.remove(this);
             }
@@ -801,8 +825,8 @@ var Alviss;
         get engine() {
             return this.scene.engine;
         }
-        destroy() {
-            super.destroy();
+        destroyImmediate() {
+            super.destroyImmediate();
             if (this.isInstance) {
                 this.gameObject.monoBehaviours.remove(this);
             }
@@ -850,8 +874,8 @@ var Alviss;
                 Matter.Body.setMass(this.gameObject._body, v);
             }
         }
-        destroy() {
-            super.destroy();
+        destroyImmediate() {
+            super.destroyImmediate();
             this.gameObject.rigidBody = undefined;
             if (this.isInstance) {
                 this.scene.rigidBodies.remove(this);
@@ -894,8 +918,8 @@ var Alviss;
             this._screenPosition = Alviss.Vector2.Zero();
             gameObject.spriteRenderer = this;
         }
-        destroy() {
-            super.destroy();
+        destroyImmediate() {
+            super.destroyImmediate();
             this.gameObject.spriteRenderer = undefined;
         }
         serialize() {
@@ -1111,7 +1135,8 @@ var Alviss;
                 c.flagWorldPosDirty();
             });
         }
-        destroy() {
+        destroyImmediate() {
+            super.destroyImmediate();
             this.gameObject.transform = undefined;
         }
         serialize() {

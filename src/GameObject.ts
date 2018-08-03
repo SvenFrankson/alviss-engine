@@ -44,8 +44,20 @@ module Alviss {
         }
 
         public destroy(): void {
+            if (this.isInstance) {
+                this.scene.bin.push(this);
+            }
+            else if (this.isPrefab) {
+                this.destroyImmediate();
+            }
+        }
+
+        public destroyImmediate(): void {
+            if (this._body) {
+                Matter.Composite.remove(this.scene.physicWorld, this._body);
+            }
             while (this._components.length > 0) {
-                this._components.get(0).destroy();
+                this._components.get(0).destroyImmediate();
             }
             if (this.isInstance) {
                 this.scene.objects.remove(this);

@@ -9,8 +9,8 @@ module Alviss {
             gameObject.spriteRenderer = this;
         }
 
-        public destroy(): void {
-            super.destroy();
+        public destroyImmediate(): void {
+            super.destroyImmediate();
             this.gameObject.spriteRenderer = undefined;
         }
 

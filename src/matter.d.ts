@@ -17,6 +17,10 @@ declare module Matter {
         gravity: IGravity;
     }
 
+    class Composite {
+        static remove(world: World, body: Body): void;
+    }
+
     interface IBodyOptions {
         isStatic: boolean;
     }

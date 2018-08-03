@@ -19,8 +19,8 @@ module Alviss {
             }
         }
 
-        public destroy(): void {
-            super.destroy();
+        public destroyImmediate(): void {
+            super.destroyImmediate();
             if (this.isInstance) {
                 this.gameObject.monoBehaviours.remove(this);
             }
